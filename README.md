@@ -46,7 +46,7 @@ Follow these steps to set up Refined Web Reader locally:
 
 4. Install the required dependencies:
    ```
-   pip install flask newspaper3k reportlab llama-index langchain langchain_community openai
+   pip install flask newspaper3k reportlab llama-index langchain langchain_community openai lxml_html_clean
    ```
 
 5. Set up your OpenAI API key:
