@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refined Web Reader</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        button {
+            background-color: #4a4a4a;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #5a5a5a;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #2e2e2e;
+            color: #ffffff;
+            border: 1px solid #4a4a4a;
+        }
+        #content, #queryResult {
+            white-space: pre-wrap;
+            background-color: #2e2e2e;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .section-header {
+            font-weight: bold;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Refined Web Reader</h1>
+        
+        <input type="text" id="urlInput" placeholder="Enter URL">
+        <button onclick="fetchArticle()">Fetch Article</button>
+        
+        <div id="error" style="color: red;"></div>
+        
+        <div id="content"></div>
+        
+        <button onclick="generatePDF()">Save as PDF</button>
+        
+        <input type="text" id="queryInput" placeholder="Enter your query">
+        <button onclick="queryArticle()">Query Article</button>
+        
+        <div id="queryResult"></div>
+    </div>
+
+    <script>
+        function fetchArticle() {
+            const url = document.getElementById('urlInput').value;
+            fetch('/fetch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({url: url}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                } else {
+                    const content = data.content.replace(/^(Title|Quick Summary|Content):$/gm, '<span class="section-header">$1:</span>');
+                    document.getElementById('content').innerHTML = content;
+                    document.getElementById('error').textContent = '';
+                }
+            })
+            .catch((error) => {
+                document.getElementById('error').textContent = 'An error occurred: ' + error;
+            });
+        }
+
+        function generatePDF() {
+            const content = document.getElementById('content').textContent;
+            fetch('/generate_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({content: content}),
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'article.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch((error) => {
+                document.getElementById('error').textContent = 'An error occurred while generating PDF: ' + error;
+            });
+        }
+
+        function queryArticle() {
+            const content = document.getElementById('content').textContent;
+            const query = document.getElementById('queryInput').value;
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({content: content, query: query}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                } else {
+                    document.getElementById('queryResult').textContent = data.result;
+                    document.getElementById('error').textContent = '';
+                }
+            })
+            .catch((error) => {
+                document.getElementById('error').textContent = 'An error occurred while querying: ' + error;
+            });
+        }
+    </script>
+</body>
+</html>
