@@ -91,7 +91,7 @@ Contributions to Refined Web Reader are welcome. Please feel free to submit a Pu
 
 ## Contact
 
-If you want to contact me, you can reach me at [your-email@example.com].
+If you want to contact me, you can reach me at francisgreenleaf@gmail.com.
 
 ## Acknowledgements
 
