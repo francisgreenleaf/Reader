@@ -11,8 +11,13 @@ from reportlab.lib.units import inch
 import io
 import os
 import openai
+import requests
+import base64
+from io import BytesIO
+from PIL import Image
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
 from langchain_community.chat_models import ChatOpenAI
+import logging
 
 app = Flask(__name__)
 
@@ -23,10 +28,14 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 app.config['CACHE_TYPE'] = 'SimpleCache'
 cache = Cache(app)
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 @cache.memoize(timeout=300) #cache for 1 hour
 
 def fetch_and_format_content(url):
     try:
+        logger.info(f"Fetching content from URL: {url}")
         article = Article(url)
         article.download()
         article.parse()
@@ -36,18 +45,18 @@ def fetch_and_format_content(url):
         summary = unescape(article.summary)
         content = unescape(article.text)
 
-        formatted_content = f"""
-{title}
+        logger.info(f"Successfully parsed article. Title: {title}")
 
-Quick Summary: {summary}
+        formatted_content = {
+            "title": title,
+            "summary": summary,
+            "content": content
+        }
 
-Content:
-{content}
-"""
-        return formatted_content.strip()
+        return formatted_content
     except Exception as e:
-        print(f"Error fetching content: {e}")
-        raise Exception("Failed to fetch and parse content")
+        logger.error(f"Error fetching content from {url}: {e}", exc_info=True)
+        raise
 
 def generate_pdf(content):
     buffer = io.BytesIO()
@@ -94,14 +103,18 @@ def home():
     return render_template('index.html')
 
 @app.route('/fetch', methods=['POST'])
-@cache.cached(timeout=3600, key_prefix=lambda: request.json['url'])
 def fetch_article():
     url = request.json['url']
     try:
+        # Use the cached function directly
         content = fetch_and_format_content(url)
+        if not content['title'] or not content['content']:
+            raise ValueError("Failed to extract meaningful content from the URL")
         return jsonify({"content": content})
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        error_message = f"Error fetching article: {str(e)}"
+        logger.error(error_message, exc_info=True)
+        return jsonify({"error": error_message}), 400
 
 @app.route('/generate_pdf', methods=['POST'])
 def generate_pdf_route():

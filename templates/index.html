@@ -1,147 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reader</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #1e1e1e;
-            color: #ffffff;
-            line-height: 1.6;
-            padding: 20px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#1e293b',
+                            200: '#334155',
+                        }
+                    }
+                }
+            }
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #ffffff;
-        }
-        button {
-            background-color: #4a4a4a;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px 0;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #5a5a5a;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #2e2e2e;
-            color: #ffffff;
-            border: 1px solid #4a4a4a;
-        }
-        #content, #queryResult {
-            white-space: pre-wrap;
-            background-color: #2e2e2e;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .section-header {
-            font-weight: bold;
-            color: #ffffff;
-        }
-    </style>
+    </script>
 </head>
-<body>
-<body class = "bg-dark">
+<body class="bg-dark-100 text-gray-300">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold mb-8">Reader</h1>
-        
-        <input type="text" id="urlInput" placeholder="Enter URL">
-        <button onclick="fetchArticle()">Fetch Article</button>
-        
-        <div id="error" style="color: red;"></div>
-        
-        <div id="content"></div>
-        
-        <button onclick="generatePDF()">Save as PDF</button>
-        
-        <input type="text" id="queryInput" placeholder="Enter your query">
-        <button onclick="queryArticle()">Query Article</button>
-        
-        <div id="queryResult"></div>
+        <h1 id="reader" class="text-4xl font-bold mb-8 text-white">Reader</h1>
+
+        <div class="mb-4">
+            <input type="text" id="urlInput" placeholder="Enter article URL" class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600">
+            <button onclick="fetchArticle()" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Fetch Article</button>
+        </div>
+
+        <div id="error" class="text-red-400 mb-4"></div>
+
+        <div id="content" class="bg-dark-200 p-6 rounded shadow-md mb-4 text-gray-300"></div>
+
+        <button onclick="generatePDF()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2">Save as PDF</button>
+
+        <div class="mt-4">
+            <input type="text" id="queryInput" placeholder="Enter your query" class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600">
+            <button onclick="queryArticle()" class="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Query Article</button>
+        </div>
+
+        <div id="queryResult" class="mt-4 bg-dark-200 p-6 rounded shadow-md text-gray-300"></div>
     </div>
 
     <script>
-        function fetchArticle() {
+        async function fetchArticle() {
             const url = document.getElementById('urlInput').value;
-            fetch('/fetch', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({url: url}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('error').textContent = data.error;
-                } else {
-                    const content = data.content.replace(/^(Title|Quick Summary|Content):$/gm, '<span class="section-header">$1:</span>');
-                    document.getElementById('content').innerHTML = content;
-                    document.getElementById('error').textContent = '';
-                }
-            })
-            .catch((error) => {
-                document.getElementById('error').textContent = 'An error occurred: ' + error;
-            });
+            const errorElement = document.getElementById('error');
+            const contentElement = document.getElementById('content');
+
+            errorElement.textContent = '';
+            contentElement.innerHTML = 'Fetching article...';
+
+            try {
+                const response = await axios.post('/fetch', { url: url });
+                const article = response.data.content;
+
+                contentElement.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-400">Summary:</h3>
+                    <p class="mb-4">${article.summary}</p>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
+                    <p>${article.content.replace(/\n/g, '<br>')}</p>
+                `;
+            } catch (error) {
+                errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
+                contentElement.innerHTML = '';
+            }
         }
 
-        function generatePDF() {
-            const content = document.getElementById('content').textContent;
-            fetch('/generate_pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({content: content}),
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'article.pdf';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch((error) => {
-                document.getElementById('error').textContent = 'An error occurred while generating PDF: ' + error;
-            });
+        async function generatePDF() {
+            const contentElement = document.getElementById('content');
+            const content = contentElement.innerText;
+
+            try {
+                const response = await axios.post('/generate_pdf', { content: content }, { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'article.pdf');
+                document.body.appendChild(link);
+                link.click();
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+            }
         }
 
-        function queryArticle() {
-            const content = document.getElementById('content').textContent;
+        async function queryArticle() {
             const query = document.getElementById('queryInput').value;
-            fetch('/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({content: content, query: query}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('error').textContent = data.error;
-                } else {
-                    document.getElementById('queryResult').textContent = data.result;
-                    document.getElementById('error').textContent = '';
-                }
-            })
-            .catch((error) => {
-                document.getElementById('error').textContent = 'An error occurred while querying: ' + error;
-            });
+            const contentElement = document.getElementById('content');
+            const queryResultElement = document.getElementById('queryResult');
+            const content = contentElement.innerText;
+
+            queryResultElement.textContent = 'Querying...';
+
+            try {
+                const response = await axios.post('/query', { content: content, query: query });
+                queryResultElement.textContent = response.data.result;
+            } catch (error) {
+                queryResultElement.textContent = 'Error querying article: ' + (error.response?.data?.error || error.message);
+            }
         }
     </script>
 </body>
