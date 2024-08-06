@@ -23,11 +23,11 @@ st.set_page_config(page_title="Reader", page_icon="📚", layout="wide", initial
 st.markdown("""
     <style>
     .stApp {
-        background-color: #1e293b;
+        background-color: #1e1e1e;
         color: #e2e8f0;
     }
     .stTextInput > div > div > input {
-        background-color: #334155;
+        background-color: #252526;
         color: white;
     }
     .stButton > button {
@@ -35,7 +35,7 @@ st.markdown("""
         color: white;
     }
     .stTextArea > div > div > textarea {
-        background-color: #334155;
+        background-color: #252526;
         color: white;
     }
     </style>
