@@ -91,7 +91,7 @@ def create_rag_index(content):
 
 @app.route('/')
 def home():
-    return render_template('index_2.6.html')
+    return render_template('index.html')
 
 @app.route('/fetch', methods=['POST'])
 @cache.cached(timeout=3600, key_prefix=lambda: request.json['url'])
