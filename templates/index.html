@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="ISO-8859-1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,7 +24,7 @@
     </script>
 </head>
 
-<body class="bg-dark-100 text-gray-300">
+<body class="bg-gray-800 text-gray-300">
     <div class="container mx-auto px-4 py-8">
       <h1 id="reader" class="text-4xl font-bold mb-8 text-white">Reader</h1>
       <div class="flex flex-wrap -mx-4">
@@ -34,16 +34,16 @@
           <button onclick="fetchArticle()"
             class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Fetch Article</button>
           <div id="error" class="text-red-400 mb-4"></div>
-          <div id="content" class="bg-dark-200 p-6 rounded shadow-md mb-4 text-gray-300"></div>
+          <div id="content" class="bg-gray-700 p-6 rounded shadow-md mb-4 text-gray-300"></div>
           <button onclick="generatePDF()"
             class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
         </div>
         <div class="w-full lg:w-2/5 px-4">
-          <input type="text" id="queryInput" placeholder="Enter your query"
-            class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-2">
+          <input type="text" id="queryInput" placeholder="Ask a question!"
+            class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
           <button onclick="queryArticle()"
             class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Query Article</button>
-          <div id="queryResult" class="bg-dark-200 p-6 rounded shadow-md text-gray-300"></div>
+          <div id="queryResult" class="bg-gray-700 p-6 rounded shadow-md text-gray-300"></div>
         </div>
       </div>
     </div>
@@ -97,7 +97,7 @@
             const queryResultElement = document.getElementById('queryResult');
             const content = contentElement.innerText;
 
-            queryResultElement.textContent = 'Querying...';
+            queryResultElement.textContent = 'Generating Response...';
 
             try {
                 const response = await axios.post('/query', { content: content, query: query });

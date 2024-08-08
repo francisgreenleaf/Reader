@@ -17,17 +17,17 @@ import os
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Set page config for dark theme
-st.set_page_config(page_title="Reader", page_icon="📚", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Reader", page_icon="📚", layout="centered", initial_sidebar_state="expanded")
 
 # Apply dark theme
 st.markdown("""
     <style>
     .stApp {
-        background-color: #1e1e1e;
+        background-color: #000000;
         color: #e2e8f0;
     }
     .stTextInput > div > div > input {
-        background-color: #252526;
+        background-color: #1e1e1e;
         color: white;
     }
     .stButton > button {
