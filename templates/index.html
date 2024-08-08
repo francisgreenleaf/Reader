@@ -26,87 +26,89 @@
 
 <body class="bg-gray-800 text-gray-300">
     <div class="container mx-auto px-4 py-8">
-      <h1 id="reader" class="text-4xl font-bold mb-8 text-white">Reader</h1>
-      <div class="flex flex-col lg:flex-row gap 4">
-        <div class="w-full lg:w-3/5 px-4 mb-4">
-          <input type="text" id="urlInput" placeholder="Enter URL"
-            class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-2">
-          <button onclick="fetchArticle()"
-            class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Fetch Article</button>
-          <div id="error" class="text-red-400 mb-4"></div>
-          <div id="content" class="bg-gray-700 p-6 rounded shadow-md mb-4 text-gray-300"></div>
-          <button onclick="generatePDF()"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
+        <h1 id="reader" class="text-4xl font-bold mb-8 text-white">Reader</h1>
+        <div class="flex flex-col lg:flex-row gap 4">
+            <div class="w-full lg:w-3/5 px-4 mb-4">
+                <input type="text" id="urlInput" placeholder="Enter URL" class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-2">
+                <button onclick="fetchArticle()" class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Fetch Article</button>
+                <div id="error" class="text-red-400 mb-4"></div>
+                <div id="content" class="bg-gray-700 p-6 rounded shadow-md mb-4 text-gray-300"></div>
+                <button onclick="generatePDF()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
+            </div>
+            <div class="w-full lg:w-2/5 px-4">
+                <label for="modelSelect">Model:</label>
+                <select id="modelSelect" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
+                    <option default value="gpt-4o-mini">GPT-4o Mini</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                </select>
+                <input type="text" id="queryInput" placeholder="Ask a question!" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
+                <button onclick="queryArticle()" class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Submit Query</button>
+                <div id="queryResult" class="bg-gray-700 p-6 rounded shadow-md text-gray-300"></div>
+            </div>
         </div>
-        <div class="w-full lg:w-2/5 px-4">
-          <input type="text" id="queryInput" placeholder="Ask a question!"
-            class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
-          <button onclick="queryArticle()"
-            class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Submit Query</button>
-          <div id="queryResult" class="bg-gray-700 p-6 rounded shadow-md text-gray-300"></div>
-        </div>
-      </div>
     </div>
-  </body>
-    <script>
-        async function fetchArticle() {
-            const url = document.getElementById('urlInput').value;
-            const errorElement = document.getElementById('error');
-            const contentElement = document.getElementById('content');
-
-            errorElement.textContent = '';
-            contentElement.innerHTML = 'Fetching article...';
-
-            try {
-                const response = await axios.post('/fetch', { url: url });
-                const article = response.data.content;
-
-                contentElement.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
-                    <h3 class="text-xl font-semibold mb-4 text-gray-400">Summary:</h3>
-                    <p class="mb-4">${article.summary}</p>
-                    <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
-                    <p>${article.content.replace(/\n/g, '<br>')}</p>
-                `;
-            } catch (error) {
-                errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
-                contentElement.innerHTML = '';
-            }
-        }
-
-        async function generatePDF() {
-            const contentElement = document.getElementById('content');
-            const content = contentElement.innerText;
-
-            try {
-                const response = await axios.post('/generate_pdf', { content: content }, { responseType: 'blob' });
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', 'article.pdf');
-                document.body.appendChild(link);
-                link.click();
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-            }
-        }
-
-        async function queryArticle() {
-            const query = document.getElementById('queryInput').value;
-            const contentElement = document.getElementById('content');
-            const queryResultElement = document.getElementById('queryResult');
-            const content = contentElement.innerText;
-
-            queryResultElement.textContent = 'Generating Response...';
-
-            try {
-                const response = await axios.post('/query', { content: content, query: query });
-                queryResultElement.textContent = response.data.result;
-            } catch (error) {
-                queryResultElement.textContent = 'Error querying article: ' + (error.response?.data?.error || error.message);
-            }
-        }
-    </script>
 </body>
+
+<script>
+    async function fetchArticle() {
+        const url = document.getElementById('urlInput').value;
+        const errorElement = document.getElementById('error');
+        const contentElement = document.getElementById('content');
+
+        errorElement.textContent = '';
+        contentElement.innerHTML = 'Fetching article...';
+
+        try {
+            const response = await axios.post('/fetch', { url: url });
+            const article = response.data.content;
+
+            contentElement.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
+                <h3 class="text-xl font-semibold mb-4 text-gray-400">Summary:</h3>
+                <p class="mb-4">${article.summary}</p>
+                <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
+                <p>${article.content.replace(/\n/g, '<br>')}</p>
+            `;
+        } catch (error) {
+            errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
+            contentElement.innerHTML = '';
+        }
+    }
+
+    async function generatePDF() {
+        const contentElement = document.getElementById('content');
+        const content = contentElement.innerText;
+
+        try {
+            const response = await axios.post('/generate_pdf', { content: content }, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'article.pdf');
+            document.body.appendChild(link);
+            link.click();
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        }
+    }
+
+    async function queryArticle() {
+        const query = document.getElementById('queryInput').value;
+        const model = document.getElementById('modelSelect').value;
+        const contentElement = document.getElementById('content');
+        const queryResultElement = document.getElementById('queryResult');
+        const content = contentElement.innerText;
+
+        queryResultElement.textContent = 'Generating Response...';
+
+        try {
+            const response = await axios.post('/query', { content: content, query: query, model: model });
+            queryResultElement.textContent = response.data.result;
+        } catch (error) {
+            queryResultElement.textContent = 'Error querying article: ' + (error.response?.data?.error || error.message);
+        }
+    }
+</script>
 
 </html>

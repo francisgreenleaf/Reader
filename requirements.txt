@@ -10,3 +10,4 @@ python-dotenv==1.0.1
 requests==2.32.3
 flask==3.0.3
 flask_caching==2.3.0
+pillow==10.4.0

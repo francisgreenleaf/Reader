@@ -126,12 +126,13 @@ def generate_pdf(content, images):
     buffer.seek(0)
     return buffer
 
-def create_rag_index(content):
+def create_rag_index(content, model):
     # Create a Document object from the content
     document = Document(text=content)
 
-    # Create service context with ChatOpenAI
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    # Create service context with selected model
+    print(f"MODEL: {model}")
+    llm = ChatOpenAI(model_name=model, temperature=0)
     service_context = ServiceContext.from_defaults(llm=llm)
 
     # Create index
@@ -171,14 +172,16 @@ def generate_pdf_route():
 def query_article():
     content = request.json['content']
     query = request.json['query']
-    
+    model = request.json.get('model', 'gpt-4o-mini')
+
     try:
-        index = create_rag_index(content)
+        index = create_rag_index(content, model)
         query_engine = index.as_query_engine()
         response = query_engine.query(query)
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 if __name__ == '__main__':
     app.run(port=8080,debug=True)
