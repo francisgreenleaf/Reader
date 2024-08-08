@@ -1,0 +1,5 @@
+.env #ignores your .env file where your API key is stored
+.DS_Store
+.project_venv/ #ignores your virtual environment (be sure to set this to the name of your virtual environment file: for example when you run python -m venv .[your venv name here])
+*.pyc
+__pycache__/
