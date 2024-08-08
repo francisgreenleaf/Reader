@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_caching import Cache
-from newspaper import Article
+from newspaper import Article, Config
 from html import unescape
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as ReportLabImage
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY
@@ -36,7 +36,13 @@ logger = logging.getLogger(__name__)
 def fetch_and_format_content(url):
     try:
         logger.info(f"Fetching content from URL: {url}")
-        article = Article(url)
+        
+        # Configure newspaper
+        config = Config()
+        config.fetch_images = True
+        config.memoize_articles = False
+        
+        article = Article(url, config=config)
         article.download()
         article.parse()
         article.nlp()
@@ -45,12 +51,37 @@ def fetch_and_format_content(url):
         summary = unescape(article.summary)
         content = unescape(article.text)
 
+        # Fetch images
+        images = []
+        for img in article.images:
+            try:
+                # Skip SVG images
+                if img.lower().endswith('.svg'):
+                    logger.info(f"Skipping SVG image: {img}")
+                    continue
+                
+                logger.info(f"Attempting to fetch image: {img}")
+                response = requests.get(img, timeout=10)
+                if response.status_code == 200:
+                    img_data = base64.b64encode(response.content).decode('utf-8')
+                    images.append({
+                        'src': img,
+                        'data': img_data
+                    })
+                    logger.info(f"Successfully fetched image: {img}")
+                else:
+                    logger.warning(f"Failed to fetch image: {img}. Status code: {response.status_code}")
+            except Exception as e:
+                logger.error(f"Error fetching image {img}: {e}", exc_info=True)
+
         logger.info(f"Successfully parsed article. Title: {title}")
+        logger.info(f"Number of images found: {len(images)}")
 
         formatted_content = {
             "title": title,
             "summary": summary,
-            "content": content
+            "content": content,
+            "images": images
         }
 
         return formatted_content
@@ -58,25 +89,38 @@ def fetch_and_format_content(url):
         logger.error(f"Error fetching content from {url}: {e}", exc_info=True)
         raise
 
-def generate_pdf(content):
+def generate_pdf(content, images):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
     flowables = []
 
-    #add title
+    # Add title
     title = content.split('\n')[0]
     flowables.append(Paragraph(title, styles['Heading1']))
-    flowables.append(Spacer(1,12))
+    flowables.append(Spacer(1, 12))
 
-    #add content
-    for line in content.split('\n')[1:]:
+    # Add content and images
+    content_lines = content.split('\n')[1:]
+    for i, line in enumerate(content_lines):
         if line.strip():
             p = Paragraph(line, styles['Justify'])
             flowables.append(p)
         else:
-            flowables.append(Spacer(1,6))
+            flowables.append(Spacer(1, 6))
+        
+        # Add an image after every 5 paragraphs, if available
+        if i % 5 == 0 and images:
+            img_data = base64.b64decode(images[0]['data'])
+            img = Image.open(BytesIO(img_data))
+            img_width, img_height = img.size
+            aspect = img_height / float(img_width)
+            img_width = 6 * inch
+            img_height = aspect * img_width
+            flowables.append(ReportLabImage(BytesIO(img_data), width=img_width, height=img_height))
+            flowables.append(Spacer(1, 12))
+            images.pop(0)
 
     doc.build(flowables)
     buffer.seek(0)
@@ -119,7 +163,8 @@ def fetch_article():
 @app.route('/generate_pdf', methods=['POST'])
 def generate_pdf_route():
     content = request.json['content']
-    pdf = generate_pdf(content)
+    images = request.json['images']
+    pdf = generate_pdf(content, images)
     return send_file(pdf, download_name='article.pdf', as_attachment=True, mimetype='application/pdf')
 
 @app.route('/query', methods=['POST'])
