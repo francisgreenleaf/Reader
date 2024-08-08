@@ -15,6 +15,10 @@ import openai
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
 from langchain_community.chat_models import ChatOpenAI
 import logging
+import requests
+import base64
+from PIL import Image
+from io import BytesIO
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,8 +35,7 @@ cache = Cache(app)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-@cache.memoize(timeout=300) #cache for 1 hour
-
+@cache.memoize(timeout=300) # cache for 5 minutes
 def fetch_and_format_content(url):
     try:
         logger.info(f"Fetching content from URL: {url}")
@@ -131,7 +134,6 @@ def create_rag_index(content, model):
     document = Document(text=content)
 
     # Create service context with selected model
-    print(f"MODEL: {model}")
     llm = ChatOpenAI(model_name=model, temperature=0)
     service_context = ServiceContext.from_defaults(llm=llm)
 
@@ -182,6 +184,5 @@ def query_article():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-
 if __name__ == '__main__':
-    app.run(port=8080,debug=True)
+    app.run(port=8080, debug=True)
