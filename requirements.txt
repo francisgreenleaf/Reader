@@ -5,7 +5,7 @@ openai==1.40.1
 llama_index==0.10.62
 langchain_community==0.2.11
 llama-index-llms-langchain==0.3.0
-lxml[html_clean]==4.9.2
+lxml_html_clean==4.9.2
 python-dotenv==1.0.1
 requests==2.32.3
 flask==3.0.3
