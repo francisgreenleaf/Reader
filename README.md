@@ -1,4 +1,4 @@
-# Reader App
+# 📚 Reader App
 
 The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques.
 ## Setup
