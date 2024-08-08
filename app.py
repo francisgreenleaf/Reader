@@ -165,16 +165,20 @@ def fetch_article():
 
 @app.route('/generate_pdf', methods=['POST'])
 def generate_pdf_route():
-    content = request.json['content']
-    images = request.json['images']
+    data = request.json
+    title = data.get('title', 'article')
+    content = data.get('content', '')
+    images = data.get('images', [])
     pdf = generate_pdf(content, images)
-    return send_file(pdf, download_name='article.pdf', as_attachment=True, mimetype='application/pdf')
+    pdf.seek(0)
+    sanitized_title = ''.join(c if c.isalnum() else '_' for c in title)
+    return send_file(pdf, download_name=f'{sanitized_title}.pdf', as_attachment=True, mimetype='application/pdf')
 
 @app.route('/query', methods=['POST'])
 def query_article():
     content = request.json['content']
     query = request.json['query']
-    model = request.json.get('model', 'gpt-4o-mini')
+    model = request.json.get('model', 'gpt-3.5-turbo')  # Default to gpt-3.5-turbo if no model is specified
 
     try:
         index = create_rag_index(content, model)
