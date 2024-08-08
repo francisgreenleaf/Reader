@@ -12,6 +12,10 @@ import openai
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
 from langchain_community.chat_models import ChatOpenAI
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize OpenAI API Key
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -93,7 +97,7 @@ def generate_pdf(content):
 
 def create_rag_index(content):
     document = Document(text=content)
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
     service_context = ServiceContext.from_defaults(llm=llm)
     index = VectorStoreIndex.from_documents([document], service_context=service_context)
     return index

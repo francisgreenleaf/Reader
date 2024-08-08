@@ -10,14 +10,14 @@ from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.units import inch
 import io
 import os
+from dotenv import load_dotenv
 import openai
-import requests
-import base64
-from io import BytesIO
-from PIL import Image
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
 from langchain_community.chat_models import ChatOpenAI
 import logging
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 

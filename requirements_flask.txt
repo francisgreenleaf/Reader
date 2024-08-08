@@ -1,0 +1,14 @@
+newspaper3k==0.2.8
+html==1.16
+reportlab==4.2.2
+openai==1.40.1
+llama_index==0.10.62
+langchain_community==0.2.11
+llama-index-llms-langchain==0.3.0
+lxml[html_clean]==4.9.2
+python-dotenv==1.0.1
+# Flask
+flask==3.0.3
+flask_caching==2.3.0
+requests==2.32.3
+logging==0.4.9.6

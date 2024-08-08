@@ -1,81 +1,44 @@
 # Reader App
 
-The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques. This repository contains two versions of the Reader App: a Streamlit version and a Flask version.
-
-## Streamlit Version
-
-### Dependencies
-
-To run the Streamlit version of the Reader App, you need to have the following dependencies installed:
-
-- streamlit
-- newspaper3k
-- html
-- base64
-- io
-- reportlab
-- openai
-- llama_index
-- langchain_community
-- os
-
-You can install these dependencies using the following command:
-
-%pip install streamlit newspaper3k reportlab openai llama_index langchain_community
-
-### Setup
+The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques. This repository contains two versions of the Reader App: a **Streamlit** version and a **Flask** version.
+## Setup
 
 1. Clone this repository to your local machine.
 
-2. Navigate to the project directory.
+2. Navigate to the project directory `cd Reader`.
 
-3. Set your OpenAI API key as an environment variable named `OPENAI_API_KEY`. You can do this by creating a .env file and assigning your API key there. 
+3. Create a .env file in the project directory and set your OpenAI API key as an environment variable:
+    `OPENAI_API_KEY=YOUR_REAL_KEY`
 
-4. Run the Streamlit app using the following command:
+4. Next, choose wich version you want **Stremlit** or **Flask**.
 
-streamlit run streamlitversion.py
+### 1. Streamlit Version
 
-5. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8501`).
+1. Install the required dependencies:
+   ```sh
+    pip install -r requirements_streamlit.txt
+    ```
 
-## Flask Version
+2. Run the Streamlit app using the following command:
+    ```sh
+    streamlit run streamlitversion.py
+    ```
 
-### Dependencies
+3. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8501`).
 
-To run the Flask version of the Reader App, you need to have the following dependencies installed:
+### 2. Flask Version
 
-- flask
-- flask_caching
-- newspaper3k
-- html
-- reportlab
-- io
-- os
-- openai
-- requests
-- base64
-- PIL
-- llama_index
-- langchain_community
-- logging
+1. Install the required dependencies:
+   ```sh
+    pip install -r requirements_flask.txt
+    ```
 
-You can install these dependencies using the following command:
+2. Run the Streamlit app using the following command:
+    ```sh
+    python app.py
+    ```
 
-%pip install flask flask_caching newspaper3k reportlab openai requests Pillow llama_index langchain_community
-
-### Setup
-
-1. Clone this repository to your local machine.
-
-2. Navigate to the project directory.
-
-3. Set your OpenAI API key as an environment variable named `OPENAI_API_KEY`. You can do this by creating a .env file and assigning your API key there.
-
-
-4. Run the Flask app using the following command:
-
-python app.py
-
-5. Open your web browser and go to `http://localhost:8080` to access the Reader App.
+3. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8080`).
 
 ## Usage
 
@@ -97,4 +60,4 @@ If you'd like to contribute to the Reader App, feel free to submit a pull reques
 
 ## License
 
-This project is open-source and available under the [MIT License](https://opensource.org/licenses/MIT).
+This project is open-source and available under the [Apache License 2.0](https://opensource.org/licenses/MIT).
