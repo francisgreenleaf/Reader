@@ -47,13 +47,13 @@
                     class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
             </div>
             <div class="w-full lg:w-2/5 px-4">
-                <input type="text" id="queryInput" placeholder="Ask a question!"
-                    class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
                 <select id="modelSelect" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
                     <option default value="gpt-4o-mini">GPT-4o Mini</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
+                <input type="text" id="queryInput" placeholder="Ask a question!"
+                    class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
                 <button onclick="queryArticle()"
                     class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Submit Query</button>
                 <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
