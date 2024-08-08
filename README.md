@@ -1,6 +1,6 @@
 # Reader App
 
-The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques. This repository contains two versions of the Reader App: a **Streamlit** version and a **Flask** version.
+The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques.
 ## Setup
 
 1. Clone this repository to your local machine.
@@ -10,35 +10,17 @@ The Reader App is a web application that allows users to fetch articles from a g
 3. Create a .env file in the project directory and set your OpenAI API key as an environment variable:
     `OPENAI_API_KEY=YOUR_REAL_KEY`
 
-4. Next, choose wich version you want **Stremlit** or **Flask**.
-
-### 1. Streamlit Version
-
-1. Install the required dependencies:
+4. Install the required dependencies:
    ```sh
-    pip install -r requirements_streamlit.txt
+    pip install -r requirements.txt
     ```
 
-2. Run the Streamlit app using the following command:
-    ```sh
-    streamlit run streamlitversion.py
-    ```
-
-3. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8501`).
-
-### 2. Flask Version
-
-1. Install the required dependencies:
-   ```sh
-    pip install -r requirements_flask.txt
-    ```
-
-2. Run the Streamlit app using the following command:
+5. Run the Streamlit app using the following command:
     ```sh
     python app.py
     ```
 
-3. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8080`).
+6. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8080`).
 
 ## Usage
 
@@ -60,4 +42,4 @@ If you'd like to contribute to the Reader App, feel free to submit a pull reques
 
 ## License
 
-This project is open-source and available under the [Apache License 2.0](https://opensource.org/licenses/MIT).
+This project is open-source and available under the [Apache License 2.0](LICENSE).
