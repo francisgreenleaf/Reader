@@ -11,4 +11,3 @@ python-dotenv==1.0.1
 flask==3.0.3
 flask_caching==2.3.0
 requests==2.32.3
-logging==0.4.9.6
