@@ -184,9 +184,13 @@ def query_article():
     model = request.json.get('model', 'gpt-3.5-turbo')  # Default to gpt-3.5-turbo if no model is specified
 
     try:
+        #Create RAG index
         index = create_rag_index(content, model)
         query_engine = index.as_query_engine()
+        #Use RAG to get relevant content
         response = query_engine.query(query)
+        relevant_content = str(response)
+
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
