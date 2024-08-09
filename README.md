@@ -10,6 +10,8 @@ The Reader App is a web application that allows users to fetch articles from a g
 3. Create a .env file in the project directory and set your OpenAI API key as an environment variable:
     `OPENAI_API_KEY=YOUR_REAL_KEY`
 
+    If you don't have an OpenAI API Key, sign into platform.openai.com and generate one there. 
+    
 4. Install the required dependencies:
    ```sh
     pip install -r requirements.txt
