@@ -41,10 +41,15 @@
         <div class="flex flex-col lg:flex-row gap 4">
             <div class="w-full lg:w-3/5 px-4 mb-4">
                 <label for="urlInput" class="block text-sm font-medium text-gray-300 mb-2">Article URL</label>
-                <input type="text" id="urlInput" placeholder="Enter URL"
-                    class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-4">
-                <button onclick="fetchArticle()"
-                    class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Load <i class="fa-solid fa-download"></i></button>
+                <div class="flex items-center space-x-2 mb-4">
+                    <input type="text" id="urlInput" placeholder="Enter URL"
+                        class="flex-grow p-2 border rounded bg-gray-700 text-white border-gray-600">
+                    <button onclick="fetchArticle()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded">
+                        Load <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+                
                 <div id="error" class="text-red-400 mb-4"></div>
                 <div id="loading" class="hidden flex justify-center items-center mt-4">
                     <svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
@@ -65,11 +70,16 @@
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
                 
-                <label for="queryInput" class="block text-sm font-medium text-gray-300 mb-2">Query</label>
-                <input type="text" id="queryInput" placeholder="Ask a question!"
-                    class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-4">
-                <button onclick="queryArticle()"
-                    class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Submit <i class="fa-solid fa-paper-plane"></i></button>
+                <label for="queryInput" class="text-sm font-medium text-gray-300">Query</label>
+                <div class="flex items-center space-x-2 mb-4">
+                    <input type="text" id="queryInput" placeholder="Ask a question!"
+                        class="flex-grow p-2 border rounded bg-gray-700 text-white border-gray-600">
+                    <button onclick="queryArticle()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded">
+                        Submit <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                
                 <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
                     <svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
