@@ -38,8 +38,9 @@
         
         <div class="flex flex-col lg:flex-row gap 4">
             <div class="w-full lg:w-3/5 px-4 mb-4">
+                <label for="urlInput" class="block text-sm font-medium text-gray-300 mb-2">Article URL</label>
                 <input type="text" id="urlInput" placeholder="Enter URL"
-                    class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-2">
+                    class="w-full p-2 border rounded bg-dark-200 text-white border-gray-600 mb-4">
                 <button onclick="fetchArticle()"
                     class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Read</button>
                 <div id="error" class="text-red-400 mb-4"></div>
@@ -55,13 +56,16 @@
                     class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
             </div>
             <div class="w-full lg:w-2/5 px-4">
-                <select id="modelSelect" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
+                <label for="modelSelect" class="block text-sm font-medium text-gray-300 mb-2">Model</label>
+                <select id="modelSelect" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-4">
                     <option default value="gpt-4o-mini">GPT-4o Mini</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
+                
+                <label for="queryInput" class="block text-sm font-medium text-gray-300 mb-2">Query</label>
                 <input type="text" id="queryInput" placeholder="Ask a question!"
-                    class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-2">
+                    class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-4">
                 <button onclick="queryArticle()"
                     class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mb-2">Submit Query</button>
                 <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
