@@ -4,6 +4,7 @@ async function fetchArticle() {
     const url = document.getElementById('urlInput').value;
     const errorElement = document.getElementById('error');
     const contentElement = document.getElementById('content');
+    const summaryElement = document.getElementById('summary');
     const loadingElement = document.getElementById('loading');
 
     errorElement.textContent = '';
@@ -16,12 +17,15 @@ async function fetchArticle() {
         articleTitle = article.title;
 
         contentElement.innerHTML = `
-            <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
-            <h3 class="text-xl font-semibold mb-4 text-gray-400">Summary:</h3>
-            <p class="mb-4">${article.summary}</p>
-            <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
-            <p>${article.content.replace(/\n/g, '<br>')}</p>
-        `;
+        <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
+        <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
+        <p>${article.content.replace(/\n/g, '<br>')}</p>
+    `;
+    
+    summaryElement.innerHTML = `
+        <h3 class="text-xl font-bold mb-2">Summary</h3>
+        <p>${article.summary}</p>
+    `;
     } catch (error) {
         errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
     } finally {

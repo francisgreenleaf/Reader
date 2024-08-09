@@ -157,7 +157,6 @@ def public_files(filename):
 def fetch_article():
     url = request.json['url']
     try:
-        # Use the cached function directly
         content = fetch_and_format_content(url)
         if not content['title'] or not content['content']:
             raise ValueError("Failed to extract meaningful content from the URL")
