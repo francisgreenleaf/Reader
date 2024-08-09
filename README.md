@@ -17,7 +17,7 @@ The Reader App is a web application that allows users to fetch articles from a g
     pip install -r requirements.txt
     ```
 
-5. Run the Streamlit app using the following command:
+5. Run the app using the following command:
     ```sh
     python app.py
     ```
