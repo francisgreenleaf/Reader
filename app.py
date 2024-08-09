@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from flask_caching import Cache
 from newspaper import Article, Config
 from html import unescape
@@ -148,6 +148,10 @@ def create_rag_index(content, model):
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/public/<path:filename>')
+def public_files(filename):
+    return send_from_directory(app.static_folder, filename)
 
 @app.route('/fetch', methods=['POST'])
 def fetch_article():
