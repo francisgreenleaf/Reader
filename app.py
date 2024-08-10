@@ -46,6 +46,9 @@ app = Flask(__name__)
 
 # Initialize OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
+#Raise an error if the API key is not set
+if openai.api_key is None:
+    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
