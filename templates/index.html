@@ -71,9 +71,11 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="collapse-content" id="content">
+                    <div id="content" class="collapse-content">
                         <p>No content available.</p>
                     </div>
+                    <!-- Hidden element to store raw article content -->
+                    <input type="hidden" id="hiddenContent" value="">
                 </div>
 
                 <button onclick="generatePDF()" class="btn btn-secondary w-full">

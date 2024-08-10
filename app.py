@@ -220,8 +220,8 @@ def query_article():
     content = request.json["content"]
     query = request.json["query"]
     model = request.json.get(
-        "model", "gpt-3.5-turbo"
-    )  # Default to gpt-3.5-turbo if no model is specified
+        "model", "gpt-4o-mini" # default
+    )
 
     try:
         # Create RAG index

@@ -4,8 +4,8 @@ async function fetchArticle() {
     const url = document.getElementById('urlInput').value;
     const errorElement = document.getElementById('error');
     const contentElement = document.getElementById('content');
+    const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
     const summaryElement = document.getElementById('summary');
-    const loadingElement = document.getElementById('loading');
     const articleTitleElement = document.getElementById('articleTitle');
     const summaryLoadingElement = document.getElementById('summaryLoading');
     const contentLoadingElement = document.getElementById('contentLoading');
@@ -14,6 +14,7 @@ async function fetchArticle() {
     errorElement.textContent = '';
     contentElement.innerHTML = '';
     summaryElement.innerHTML = '';
+    hiddenContentElement.value = ''; // Clear the hidden content field
     summaryLoadingElement.classList.remove('hidden');
     contentLoadingElement.classList.remove('hidden');
 
@@ -24,11 +25,14 @@ async function fetchArticle() {
 
         articleTitleElement.textContent = article.title;
 
+        const articleContent = article.content.replace(/\n/g, '<br>');
         contentElement.innerHTML = `
             <h3 class="text-xl font-semibold mb-4">Content:</h3>
-            <p>${article.content.replace(/\n/g, '<br>')}</p>
+            <p>${articleContent}</p>
         `;
-    
+
+        hiddenContentElement.value = article.content; // Store raw content in hidden element
+
         summaryElement.innerHTML = `
             <p>${article.summary}</p>
         `;
@@ -45,9 +49,14 @@ async function fetchArticle() {
 }
 
 async function generatePDF() {
-    const contentElement = document.getElementById('content');
-    const content = contentElement.innerText;
-    const images = []; // Assuming images are fetched along with the content and stored somewhere
+    const hiddenContentElement = document.getElementById('hiddenContent');
+    const content = hiddenContentElement.value.trim();
+    const images = [];
+
+    if (!content) {
+        console.error('Content is empty. Cannot generate PDF.');
+        return;
+    }
 
     try {
         const response = await axios.post('/generate_pdf', { title: articleTitle, content: content, images: images }, { responseType: 'blob' });
@@ -65,13 +74,20 @@ async function generatePDF() {
 async function queryArticle() {
     const query = document.getElementById('queryInput').value;
     const model = document.getElementById('modelSelect').value;
-    const contentElement = document.getElementById('content');
+    const hiddenContentElement = document.getElementById('hiddenContent');
     const queryResultElement = document.getElementById('queryResult');
     const queryLoadingElement = document.getElementById('queryLoading');
-    const content = contentElement.innerText;
+    const content = hiddenContentElement.value.trim();
 
     queryResultElement.textContent = '';
     queryLoadingElement.classList.remove('hidden');
+
+    if (!content) {
+        console.error('Content is empty. Cannot perform query.');
+        queryResultElement.textContent = 'Error: Content is empty. Please load an article';
+        queryLoadingElement.classList.add('hidden');
+        return;
+    }
 
     try {
         const response = await axios.post('/query', { content: content, query: query, model: model });
