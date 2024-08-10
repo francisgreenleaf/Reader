@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="dracula">
 
 <head>
     <meta charset="ISO-8859-1">
@@ -9,90 +9,102 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            100: '#1e293b',
-                            200: '#334155',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 
-<body class="bg-gray-800 text-gray-300">
+<body>
     <div class="container mx-auto px-4 py-8">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-8">
-            <h1 id="reader" class="text-4xl font-bold text-white">📚 Reader</h1>
-            <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-white text-2xl">
-                <i class="fab fa-github"></i>
-            </a>
+            <h1 id="reader" class="text-4xl font-bold">📚 Reader</h1>
+            <div class="flex items-center space-x-4">
+                <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
+                    <i class="fab fa-github"></i>
+                </a>
+                <button id="themeToggle" class="btn btn-primary flex items-center space-x-2">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
         </div>
         
-        <div class="flex flex-col lg:flex-row gap 4"> <!-- Left Column -->
+        <div class="flex flex-col lg:flex-row gap-4"> <!-- Left Column -->
             <div class="w-full lg:w-3/5 px-4 mb-4">
-                <label for="urlInput" class="block text-sm font-medium text-gray-300 mb-2">Article URL:</label>
+                <label for="urlInput" class="block text-sm font-medium mb-2">Article URL:</label>
                 <div class="flex items-center space-x-2 mb-4">
                     <input type="text" id="urlInput" placeholder="Enter URL"
-                        class="flex-grow p-2 border rounded bg-gray-700 text-white border-gray-600">
-                    <button onclick="fetchArticle()"
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded">
-                        Load <i class="fa-solid fa-download"></i>
+                        class="flex-grow input input-bordered input-secondary w-full">
+                    <button onclick="fetchArticle()" class="btn btn-secondary">
+                        Load <i class="fa-solid fa-download ml-2"></i>
                     </button>
                 </div>
                 
-                <div id="error" class="text-red-400 mb-4"></div>
+                <div id="error" class="text-error mb-4"></div>
                 <div id="loading" class="hidden flex justify-center items-center mt-4">
-                    <svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
                     Processing...
                 </div>
-                <div id="content" class="bg-gray-700 p-6 rounded shadow-md mb-4 text-gray-300"></div>
-                <button onclick="generatePDF()"
-                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Save as PDF</button>
+                <div id="content" class="p-6 rounded-lg shadow-md mb-4 bg-base-200"></div>
+                <button onclick="generatePDF()" class="btn btn-secondary w-full">
+                    Save as PDF
+                </button>
             </div>
             <div class="w-full lg:w-2/5 px-4"> <!-- Right Column -->
-                <label for="modelSelect" class="block text-sm font-medium text-gray-300 mb-2">Model:</label>
-                <select id="modelSelect" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-4">
+                <label for="modelSelect" class="block text-sm font-medium mb-2">Model:</label>
+                <select id="modelSelect" class="select select-bordered w-full mb-4">
                     <option default value="gpt-4o-mini">GPT-4o Mini</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
-                <label for ="summary" class="text-sm font-medium text-gray-300">Summary:</label>
-                <div id="summary" class="bg-gray-700 p-6 rounded shadow-md mb-4 text-gray-300"></div>
+                <label for="summary" class="text-sm font-medium">Summary:</label>
+                <div id="summary" class="p-6 rounded-lg shadow-md mb-4 bg-base-200"></div>
                 
-                <label for="queryInput" class="text-sm font-medium text-gray-300">Query:</label>
+                <label for="queryInput" class="text-sm font-medium">Query:</label>
                 <div class="flex items-center space-x-2 mb-4">
                     <input type="text" id="queryInput" placeholder="Ask a question!"
-                        class="flex-grow p-2 border rounded bg-gray-700 text-white border-gray-600">
-                    <button onclick="queryArticle()"
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded">
-                        Submit <i class="fa-solid fa-paper-plane"></i>
+                        class="flex-grow input input-bordered input-secondary w-full">
+                    <button onclick="queryArticle()" class="btn btn-secondary">
+                        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
                     </button>
                 </div>
                 
                 <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
-                    <svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
                     Processing...
                 </div>
-                <div id="queryResult" class="bg-gray-700 p-6 rounded shadow-md text-gray-300"></div>
+                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-200"></div>
             </div>
         </div>
     </div>
 </body>
 <script src="/static/script.js"></script>
+<script>
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const htmlElement = document.documentElement;
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'retro' ? 'dracula' : 'retro';
+        
+        htmlElement.setAttribute('data-theme', newTheme);
+
+        // Update icon and text based on the new theme
+        if (newTheme === 'dracula') {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        } else {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+    });
+</script>
 </html>
