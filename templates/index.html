@@ -41,14 +41,41 @@
                 </div>
                 
                 <div id="error" class="text-error mb-4"></div>
-                <div id="loading" class="hidden flex justify-center items-center mt-4">
-                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Processing...
+
+                <!-- Summary Collapse -->
+                <div class="collapse collapse-arrow bg-base-300 mb-4">
+                    <input type="checkbox" id="summaryCollapse" />
+                    <div class="collapse-title text-xl font-medium">
+                        Summary
+                        <div id="summaryLoading" class="hidden flex justify-center items-center mt-4">
+                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="collapse-content" id="summary">
+                        <p>No summary available.</p>
+                    </div>
                 </div>
-                <div id="content" class="p-6 rounded-lg shadow-md mb-4 bg-base-200"></div>
+
+                <!-- Content Collapse -->
+                <div class="collapse collapse-arrow bg-base-300 mb-4">
+                    <input type="checkbox" id="contentCollapse" />
+                    <div class="collapse-title text-xl font-medium" id="articleTitle">
+                        Article Content
+                        <div id="contentLoading" class="hidden flex justify-center items-center mt-4">
+                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="collapse-content" id="content">
+                        <p>No content available.</p>
+                    </div>
+                </div>
+
                 <button onclick="generatePDF()" class="btn btn-secondary w-full">
                     Save as PDF
                 </button>
@@ -60,8 +87,6 @@
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
-                <label for="summary" class="text-sm font-medium">Summary:</label>
-                <div id="summary" class="p-6 rounded-lg shadow-md mb-4 bg-base-200"></div>
                 
                 <label for="queryInput" class="text-sm font-medium">Query:</label>
                 <div class="flex items-center space-x-2 mb-4">
@@ -79,7 +104,7 @@
                     </svg>
                     Processing...
                 </div>
-                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-200"></div>
+                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300"></div>
             </div>
         </div>
     </div>
@@ -88,7 +113,6 @@
 <script>
     const themeToggleBtn = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
-    const themeText = document.getElementById('themeText');
     const htmlElement = document.documentElement;
 
     themeToggleBtn.addEventListener('click', () => {

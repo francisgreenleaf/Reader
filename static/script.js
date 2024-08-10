@@ -6,30 +6,41 @@ async function fetchArticle() {
     const contentElement = document.getElementById('content');
     const summaryElement = document.getElementById('summary');
     const loadingElement = document.getElementById('loading');
+    const articleTitleElement = document.getElementById('articleTitle');
+    const summaryLoadingElement = document.getElementById('summaryLoading');
+    const contentLoadingElement = document.getElementById('contentLoading');
+    const summaryCollapse = document.getElementById('summaryCollapse');
 
     errorElement.textContent = '';
     contentElement.innerHTML = '';
-    loadingElement.classList.remove('hidden');
+    summaryElement.innerHTML = '';
+    summaryLoadingElement.classList.remove('hidden');
+    contentLoadingElement.classList.remove('hidden');
 
     try {
         const response = await axios.post('/fetch', { url: url });
         const article = response.data.content;
         articleTitle = article.title;
 
+        articleTitleElement.textContent = article.title;
+
         contentElement.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4 text-white">${article.title}</h2>
-        <h3 class="text-xl font-semibold mb-4 text-gray-400">Content:</h3>
-        <p>${article.content.replace(/\n/g, '<br>')}</p>
-    `;
+            <h3 class="text-xl font-semibold mb-4">Content:</h3>
+            <p>${article.content.replace(/\n/g, '<br>')}</p>
+        `;
     
-    summaryElement.innerHTML = `
-        <h3 class="text-xl font-bold mb-2">Summary</h3>
-        <p>${article.summary}</p>
-    `;
+        summaryElement.innerHTML = `
+            <p>${article.summary}</p>
+        `;
+
+        // Automatically open the summary collapse
+        summaryCollapse.checked = true;
+
     } catch (error) {
         errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
     } finally {
-        loadingElement.classList.add('hidden');
+        summaryLoadingElement.classList.add('hidden');
+        contentLoadingElement.classList.add('hidden');
     }
 }
 
