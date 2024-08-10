@@ -27,12 +27,17 @@ from dotenv import load_dotenv
 import openai
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
 from langchain_community.chat_models import ChatOpenAI
-import logging
+import colorlog
 import requests
 import base64
 from PIL import Image
 from io import BytesIO
 from dataclasses import dataclass, field
+
+handler = colorlog.StreamHandler()
+
+logger = colorlog.getLogger(__name__)
+logger.addHandler(handler)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,9 +50,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 
 @dataclass
