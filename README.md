@@ -42,6 +42,9 @@ The Reader App is a web application that allows users to fetch articles from a g
 
 If you'd like to contribute to the Reader App, feel free to submit a pull request or open an issue on the GitHub repository.
 
+## Acknowledgements 
+This app was developed as part of the Stanford Continuing Studies class TECH-16: LLMs for Business with Python taught by Charlie Flanagan. The app owe's its thanks to him, Dima Timofeev, and many others including the teams who built the app's various dependencies.  
+
 ## License
 
 This project is open-source and available under the [Apache License 2.0](LICENSE).
