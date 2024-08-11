@@ -1,3 +1,12 @@
+import os
+from dataclasses import dataclass, field
+from html import unescape
+from typing import List
+
+import colorlog
+import openai
+import requests
+from dotenv import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -6,33 +15,13 @@ from flask import (
     send_file,
     send_from_directory,
 )
-from typing import List
 from flask_caching import Cache
 from newspaper import Article, ArticleException, Config
-from html import unescape
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    Image as ReportLabImage,
-)
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_JUSTIFY
-from reportlab.lib.units import inch
-import io
-import os
-from dotenv import load_dotenv
-import openai
-from llama_index.core import VectorStoreIndex, Document, ServiceContext
-from langchain_openai import ChatOpenAI
-import colorlog
-import requests
-import base64
-from PIL import Image
-from io import BytesIO
-from dataclasses import dataclass, field
+
+from utils.constants import IndexModel
+from utils.fetch import imageUtils
+from utils.generate import pdfUtils
+from utils.index import indexUtils
 
 handler = colorlog.StreamHandler()
 
@@ -96,7 +85,7 @@ def fetch_and_format_content(url):
     summary = unescape(article.summary)
     content = unescape(article.text)
 
-    images = fetch_images(article.images)
+    images = imageUtils.fetch_images(article.images, requests, logger)
 
     logger.info(f"Successfully parsed article. Title: {title}")
     logger.info(f"Number of images found: {len(images)}")
@@ -104,85 +93,6 @@ def fetch_and_format_content(url):
     return FormattedContent(
         title=title, summary=summary, content=content, images=images
     )
-
-#individual function to fetch images with try except blocks for specific exceptions
-def fetch_images(image_urls):
-    images = []
-    for img in image_urls:
-        if img.lower().endswith(".svg"):
-            logger.info(f"Skipping SVG image: {img}")
-            continue
-
-        try: 
-            logger.info(f"Attempting to fetch image: {img}")
-            response = requests.get(img, timeout=10)
-            response.raise_for_status()
-            img_data = base64.b64encode(response.content).decode("utf-8")
-            images.append({"src": img, "data": img_data})
-            logger.info(f"Successfully fetched image: {img}")
-        except requests.Timeout:
-            logger.warning(f"Timeout fetching image: {img}")
-        except requests.HTTPError as http_err:
-            logger.warning(f"HTTP error fetching image: {img}: Status code: {http_err}")
-        except requests.RequestException as req_err:
-            logger.warning(f"Error occurred while fetching image {img}: {req_err}")
-
-    return images        
-
-def generate_pdf(content, images):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
-    )
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="Justify", alignment=TA_JUSTIFY))
-    flowables = []
-
-    # Add title
-    title = content.split("\n")[0]
-    flowables.append(Paragraph(title, styles["Heading1"]))
-    flowables.append(Spacer(1, 12))
-
-    # Add content and images
-    content_lines = content.split("\n")[1:]
-    for i, line in enumerate(content_lines):
-        if line.strip():
-            p = Paragraph(line, styles["Justify"])
-            flowables.append(p)
-        else:
-            flowables.append(Spacer(1, 6))
-
-        # Add an image after every 5 paragraphs, if available
-        if i % 5 == 0 and images:
-            img_data = base64.b64decode(images[0]["data"])
-            img = Image.open(BytesIO(img_data))
-            img_width, img_height = img.size
-            aspect = img_height / float(img_width)
-            img_width = 6 * inch
-            img_height = aspect * img_width
-            flowables.append(
-                ReportLabImage(BytesIO(img_data), width=img_width, height=img_height)
-            )
-            flowables.append(Spacer(1, 12))
-            images.pop(0)
-
-    doc.build(flowables)
-    buffer.seek(0)
-    return buffer
-
-
-def create_rag_index(content, model):
-    # Create a Document object from the content
-    document = Document(text=content)
-
-    # Create service context with selected model
-    llm = ChatOpenAI(model_name=model, temperature=0)
-    service_context = ServiceContext.from_defaults(llm=llm)
-
-    # Create index
-    index = VectorStoreIndex.from_documents([document], service_context=service_context)
-
-    return index
 
 
 @app.route("/")
@@ -215,7 +125,7 @@ def generate_pdf_route():
     title = data.get("title", "article")
     content = data.get("content", "")
     images = data.get("images", [])
-    pdf = generate_pdf(content, images)
+    pdf = pdfUtils.generate_pdf(content, images)
     pdf.seek(0)
     sanitized_title = "".join(c if c.isalnum() else "_" for c in title)
     return send_file(
@@ -233,10 +143,12 @@ def query_article():
     model = request.json.get(
         "model", "gpt-4o-mini" # default
     )
+    indexModel = IndexModel.VECTOR_STORE
+    temperature = 0.0
 
     try:
         # Create RAG index
-        index = create_rag_index(content, model)
+        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
         query_engine = index.as_query_engine()
         # Use RAG to get relevant content
         response = query_engine.query(query)
