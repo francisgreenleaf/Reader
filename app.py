@@ -8,7 +8,7 @@ from flask import (
 )
 from typing import List
 from flask_caching import Cache
-from newspaper import Article, Config
+from newspaper import Article, ArticleException, Config
 from html import unescape
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
@@ -62,64 +62,68 @@ class FormattedContent:
     content: str
     images: List = field(default_factory=list)
 
-
+#NEW FUNCTIONS: these use try except blocks for specific exceptions
+#instead of using try except blocks to catch all errors
+#at the moment these functions appeat to slow down the code, but they are more robust. 
 @cache.memoize(timeout=300)  # cache for 5 minutes
 def fetch_and_format_content(url):
-    # TODO: Using try-except blocks to catch all errors can be hazardous. Instead,
-    # it's better to use them to handle specific exceptions that may occur with
-    # particular function calls.
+    logger.info(f"Fetching content from URL: {url}")
+
+    #Configure newspaper
+    config = Config()
+    config.fetch_images = True
+    config.memoize_articles = False
+
+    article = Article(url, config=config)
+
     try:
-        logger.info(f"Fetching content from URL: {url}")
-
-        # Configure newspaper
-        config = Config()
-        config.fetch_images = True
-        config.memoize_articles = False
-
-        article = Article(url, config=config)
         article.download()
         article.parse()
         article.nlp()
 
-        title = unescape(article.title)
-        summary = unescape(article.summary)
-        content = unescape(article.text)
-
-        # Fetch images
-        images = []
-        for img in article.images:
-            # TODO: Using try-except blocks to catch all errors can be hazardous.
-            # Instead, it's better to use them to handle specific exceptions that
-            # may occur with particular function calls.
-            try:
-                # Skip SVG images
-                if img.lower().endswith(".svg"):
-                    logger.info(f"Skipping SVG image: {img}")
-                    continue
-
-                logger.info(f"Attempting to fetch image: {img}")
-                response = requests.get(img, timeout=10)
-                if response.status_code == 200:
-                    img_data = base64.b64encode(response.content).decode("utf-8")
-                    images.append({"src": img, "data": img_data})
-                    logger.info(f"Successfully fetched image: {img}")
-                else:
-                    logger.warning(
-                        f"Failed to fetch image: {img}. Status code: {response.status_code}"
-                    )
-            except Exception as e:
-                logger.error(f"Error fetching image {img}: {e}", exc_info=True)
-
-        logger.info(f"Successfully parsed article. Title: {title}")
-        logger.info(f"Number of images found: {len(images)}")
-
-        return FormattedContent(
-            title=title, summary=summary, content=content, images=images
-        )
+    except ArticleException as e:
+        logger.error(f"Error fetching article: {e}")
+        raise ValueError(f"Failed to parse article from {url}: {str(e)}")
     except Exception as e:
-        logger.error(f"Error fetching content from {url}: {e}", exc_info=True)
-        raise
+        logger.error(f"Unexpected error fetching article: {e}")
+        raise ValueError(f"An unexpected error occurred while fetching the article from {url}: {str(e)}")
 
+    title = unescape(article.title)
+    summary = unescape(article.summary)
+    content = unescape(article.text)
+
+    images = fetch_images(article.images)
+
+    logger.info(f"Successfully parsed article. Title: {title}")
+    logger.info(f"Number of images found: {len(images)}")
+
+    return FormattedContent(
+        title=title, summary=summary, content=content, images=images
+    )
+
+#wrote infividual function to fetch images, also with try except blocks for specific exceptions
+def fetch_images(image_urls):
+    images = []
+    for img in image_urls:
+        if img.lower().endswith(".svg"):
+            logger.info(f"Skipping SVG image: {img}")
+            continue
+
+        try: 
+            logger.info(f"Attempting to fetch image: {img}")
+            response = requests.get(img, timeout=10)
+            response.raise_for_status()
+            img_data = base64.b64encode(response.content).decode("utf-8")
+            images.append({"src": img, "data": img_data})
+            logger.info(f"Successfully fetched image: {img}")
+        except requests.Timeout:
+            logger.warning(f"Timeout fetching image: {img}")
+        except requests.HTTPError as http_err:
+            logger.warning(f"HTTP error fetching image: {img}: Status code: {http_err}")
+        except requests.RequestException as req_err:
+            logger.warning(f"Error occurred while fetching image {img}: {req_err}")
+
+    return images        
 
 def generate_pdf(content, images):
     buffer = io.BytesIO()
