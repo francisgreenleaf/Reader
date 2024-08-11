@@ -43,6 +43,7 @@ langchain==0.2.12
 langchain-community==0.2.11
 langchain-core==0.2.29
 langchain-text-splitters==0.2.2
+langchain-openai==0.2.11
 langsmith==0.1.98
 llama-cloud==0.0.13
 llama-index==0.10.62

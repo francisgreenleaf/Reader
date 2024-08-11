@@ -26,7 +26,7 @@ import os
 from dotenv import load_dotenv
 import openai
 from llama_index.core import VectorStoreIndex, Document, ServiceContext
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 import colorlog
 import requests
 import base64
@@ -64,7 +64,8 @@ class FormattedContent:
 
 
 @cache.memoize(timeout=300)  # cache for 5 minutes
-#fetch and format content function is no longer one large try except block, but instead has individual try except blocks for specific exceptions
+#fetch and format content function is no longer one large try except block 
+#but instead has individual try except blocks for specific exceptions
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
 
@@ -80,6 +81,10 @@ def fetch_and_format_content(url):
         article.parse()
         article.nlp()
 
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            logger.error(f"403 Forbidden error when accessing {url}")
+            raise ValueError(f"Access to the content at {url} is forbidden. The website may be blocking automated access or requiring authentication.")
     except ArticleException as e:
         logger.error(f"Error fetching article: {e}")
         raise ValueError(f"Failed to parse article from {url}: {str(e)}")
