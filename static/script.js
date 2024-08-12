@@ -23,7 +23,7 @@ async function fetchArticle() {
         const article = response.data.content;
         articleTitle = article.title;
 
-        articleTitleElement.textContent = article.title;
+        articleTitleElement.childNodes[0].textContent = article.title;
 
         const articleContent = article.content.replace(/\n/g, '<br>');
         contentElement.innerHTML = `
