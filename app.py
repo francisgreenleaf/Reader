@@ -23,6 +23,7 @@ from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
+from utils.tokenguard import tokenguard
 
 handler = colorlog.StreamHandler()
 
@@ -43,7 +44,6 @@ if openai.api_key is None:
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
-
 
 @dataclass
 class FormattedContent:
@@ -143,7 +143,11 @@ def query_article():
     query = request.json["query"]
     model = request.json.get("model", "gpt-4o-mini")  # default
     temperature = request.json.get("temperature", 0.3)  # default
+    max_tokens = request.json.get("max_tokens", 1000)  # default
     indexModel = IndexModel.VECTOR_STORE
+
+    #token guard to prevent excessive token use
+    token_guard = tokenguard.TokenGuard(model, 4096)
 
     #create the index
     index_creator = indexUtils.create_rag_index(content, model, indexModel)
