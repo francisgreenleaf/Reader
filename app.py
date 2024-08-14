@@ -141,40 +141,23 @@ def generate_pdf_route():
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
-    model = request.json.get("model", "gpt-4o-mini")  # default
-    temperature = request.json.get("temperature", 0.3)  # default
-    max_tokens = request.json.get("max_tokens", 1000)  # default
-    indexModel = IndexModel.VECTOR_STORE
-
-    #token guard to prevent excessive token use
-    token_guard = tokenguard.TokenGuard(model, 4096)
-
-    #create the index
-    index_creator = indexUtils.create_rag_index(content, model, indexModel)
-    index = index_creator(content, model, temperature)
-
-    from langchain.prompts import ChatPromptTemplate
-    from langchain.schema import HumanMessage, SystemMessage, AIMessage
-
-    #create a prompt template
-    prompt_template = ChatPromptTemplate.from_messages([
-        SystemMessage(content="You are an AI assistant tasked with answering questions based solely on the provided context."
-                      "Answers should be derived from the context and not from external sources."
-                      "If your answer cannot be found in the context, you should inform the user."),
-        HumanMessage(content="Context: {content}\n\nHuman: {query}"),
-        AIMessage(content="{response}")
-    ])
-
-    #create query engine with the cutom prompt template
-    query_engine = index.as_query_engine(
-        text_qa_template=prompt_template,
-        similarity_top_k=5
+    model = request.json.get(
+        "model", "gpt-4o-mini" # default
     )
+    indexModel = IndexModel.VECTOR_STORE
+    temperature = 0.0
 
-    #use RAG to get relevant content
-    response = query_engine.query(query)
+    try:
+        # Create RAG index
+        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
+        query_engine = index.as_query_engine()
+        # Use RAG to get relevant content
+        response = query_engine.query(query)
+        relevant_content = str(response)
 
-    return jsonify({"response": response})
+        return jsonify({"result": str(response)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
