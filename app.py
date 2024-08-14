@@ -6,6 +6,7 @@ from typing import List
 import colorlog
 import openai
 import requests
+import langchain
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -22,6 +23,7 @@ from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
+from utils.tokenguard import tokenguard
 
 handler = colorlog.StreamHandler()
 
@@ -42,7 +44,6 @@ if openai.api_key is None:
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
-
 
 @dataclass
 class FormattedContent:
@@ -157,7 +158,6 @@ def query_article():
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)

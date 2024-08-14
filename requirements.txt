@@ -70,7 +70,7 @@ mypy-extensions==1.0.0
 nest-asyncio==1.6.0
 networkx==3.2.1
 newspaper3k==0.2.8
-nltk==3.8.1
+nltk==3.8.2
 numpy==1.26.4
 openai==1.40.1
 orjson==3.10.7
