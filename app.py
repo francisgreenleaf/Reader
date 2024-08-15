@@ -1,12 +1,10 @@
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from html import unescape
-from typing import List
 
 import colorlog
 import openai
 import requests
-import langchain
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -50,7 +48,7 @@ class FormattedContent:
     title: str
     summary: str
     content: str
-    images: List = field(default_factory=list)
+    top_image_url: str
 
 
 @cache.memoize(timeout=300)  # cache for 5 minutes
@@ -83,14 +81,10 @@ def fetch_and_format_content(url):
     title = unescape(article.title)
     summary = unescape(article.summary)
     content = unescape(article.text)
-
-    images = imageUtils.fetch_images(article.images, requests, logger)
-
-    logger.info(f"Successfully parsed article. Title: {title}")
-    logger.info(f"Number of images found: {len(images)}")
+    top_image_url = article.top_image if (imageUtils.is_image_displayed(article.top_image, article.html)) else ''
 
     return FormattedContent(
-        title=title, summary=summary, content=content, images=images
+        title=title, summary=summary, content=content, top_image_url=top_image_url
     )
 
 
@@ -123,8 +117,7 @@ def generate_pdf_route():
     data = request.json
     title = data.get("title", "article")
     content = data.get("content", "")
-    images = data.get("images", [])
-    pdf = pdfUtils.generate_pdf(content, images)
+    pdf = pdfUtils.generate_pdf(content)
     pdf.seek(0)
     sanitized_title = "".join(c if c.isalnum() else "_" for c in title)
     return send_file(

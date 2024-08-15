@@ -1,26 +1,15 @@
 ''' Utils function related to image fetch '''
-import base64
 
-#individual function to fetch images with try except blocks for specific exceptions
-def fetch_images(image_urls, requests, logger):
-    images = []
-    for img in image_urls:
-        if img.lower().endswith(".svg"):
-            logger.info(f"Skipping SVG image: {img}")
-            continue
+CDN_PREFIXES = ["https://substackcdn.com/image/fetch/"]
 
-        try:
-            logger.info(f"Attempting to fetch image: {img}")
-            response = requests.get(img, timeout=10)
-            response.raise_for_status()
-            img_data = base64.b64encode(response.content).decode("utf-8")
-            images.append({"src": img, "data": img_data})
-            logger.info(f"Successfully fetched image: {img}")
-        except requests.Timeout:
-            logger.warning(f"Timeout fetching image: {img}")
-        except requests.HTTPError as http_err:
-            logger.warning(f"HTTP error fetching image: {img}: Status code: {http_err}")
-        except requests.RequestException as req_err:
-            logger.warning(f"Error occurred while fetching image {img}: {req_err}")
+# Check if the image is displayed in the html body
+def is_image_displayed(top_image_url: str, html: str) -> bool:
+    index = max(-1, html.find(f"<a href=\"{top_image_url}\""))
+    index = max(index, html.find(f"<image src=\"{top_image_url}\""))
+    return index > -1 or _is_url_start_with_cdn_prefixes(top_image_url, CDN_PREFIXES)
 
-    return images
+def _is_url_start_with_cdn_prefixes(top_image_url: str, prefixes: []) -> bool:
+    for prefix in prefixes:
+        if (top_image_url.startswith(prefix)):
+            return True
+    return False
