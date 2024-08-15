@@ -54,8 +54,6 @@ class FormattedContent:
 
 
 @cache.memoize(timeout=300)  # cache for 5 minutes
-#fetch and format content function is no longer one large try except block 
-#but instead has individual try except blocks for specific exceptions
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
 
