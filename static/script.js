@@ -1,4 +1,5 @@
 let articleTitle = '';
+let topImageUrl = ''
 
 async function fetchArticle() {
     const url = document.getElementById('urlInput').value;
@@ -22,12 +23,14 @@ async function fetchArticle() {
         const response = await axios.post('/fetch', { url: url });
         const article = response.data.content;
         articleTitle = article.title;
+        topImageUrl = article.top_image_url;
 
         articleTitleElement.childNodes[0].textContent = article.title;
 
         const articleContent = article.content.replace(/\n/g, '<br>');
         contentElement.innerHTML = `
             <h3 class="text-xl font-semibold mb-4">Content:</h3>
+            <img src=${topImageUrl}>
             <p>${articleContent}</p>
         `;
 
