@@ -1,0 +1,17 @@
+body {
+    background-color: #ffffff;
+    color: #333333;
+}
+
+a {
+    color: #0066cc;
+}
+
+.btn-primary {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+
+.bg-base-300 {
+    background-color: #f0f0f0;
+}

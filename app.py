@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass
 from html import unescape
-
 import colorlog
 import openai
 import requests
