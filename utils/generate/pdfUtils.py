@@ -17,7 +17,7 @@ from reportlab.platypus import (
 )
 
 # To generate pdf from the content
-def generate_pdf(content, images):
+def generate_pdf(content):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
@@ -39,20 +39,6 @@ def generate_pdf(content, images):
             flowables.append(p)
         else:
             flowables.append(Spacer(1, 6))
-
-        # Add an image after every 5 paragraphs, if available
-        if i % 5 == 0 and images:
-            img_data = base64.b64decode(images[0]["data"])
-            img = Image.open(BytesIO(img_data))
-            img_width, img_height = img.size
-            aspect = img_height / float(img_width)
-            img_width = 6 * inch
-            img_height = aspect * img_width
-            flowables.append(
-                ReportLabImage(BytesIO(img_data), width=img_width, height=img_height)
-            )
-            flowables.append(Spacer(1, 12))
-            images.pop(0)
 
     doc.build(flowables)
     buffer.seek(0)
