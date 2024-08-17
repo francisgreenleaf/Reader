@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass, field
 from html import unescape
 from typing import List
-
 import colorlog
 import openai
 import requests
