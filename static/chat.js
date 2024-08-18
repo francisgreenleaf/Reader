@@ -2,7 +2,12 @@ const converter = new showdown.Converter();
 let articleTitle = '';
 let topImageUrl = '';
 
-// Function to write messages to the chatbox
+/**
+ * Function to write messages to the chatbox.
+ * @param {boolean} isAI - Whether the message is from AI or user.
+ * @param {string} message - The message content.
+ * @param {string} [color=""] - The color of the chat bubble (optional).
+ */
 const writeToChat = (isAI, message, color="") => {
     const queryResultElement = document.getElementById('queryResult');
     
@@ -23,8 +28,11 @@ const writeToChat = (isAI, message, color="") => {
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
-// Function to fetch an article and display it in the chatbox
-async function fetchArticle() {
+/**
+ * Function to fetch an article from a given URL and display its summary in the chatbox.
+ * It also stores the article's raw content for later use.
+ */
+const fetchArticle = async () => {
     const url = document.getElementById('urlInput').value;
     const errorElement = document.getElementById('error');
     const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
@@ -47,8 +55,11 @@ async function fetchArticle() {
     }
 }
 
-// Function to generate a PDF of the article
-async function generatePDF() {
+/**
+ * Function to generate a PDF of the fetched article.
+ * The PDF includes the article's title, content, and images.
+ */
+const generatePDF = async () => {
     const hiddenContentElement = document.getElementById('hiddenContent');
     const content = hiddenContentElement.value.trim();
     const images = [];
@@ -71,8 +82,11 @@ async function generatePDF() {
     }
 }
 
-// Function to send a query to the article and display the result in the chatbox
-async function queryArticle() {
+/**
+ * Function to send a query related to the fetched article and display the result in the chatbox.
+ * It uses the selected AI model to answer the query based on the article's content.
+ */
+const queryArticle = async () => {
     const query = document.getElementById('queryInput').value;
     writeToChat(false, query);
     const model = document.getElementById('modelSelect').value;
