@@ -34,7 +34,6 @@
 #queryResult {
     flex-grow: 1;
     overflow-y: auto;
-    margin-bottom: 16px;
 }
 
 /* Position the submit button at the bottom */

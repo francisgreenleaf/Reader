@@ -17,24 +17,18 @@
 </head>
 
 <body>
-    <div class="container mx-auto max-w-4xl px-2 py-4">
-        <!-- Header Section -->
-        <div class="flex justify-between items-center mb-4">
-            <h1 id="reader" class="text-4xl font-bold">📚 Reader</h1>
-            <div class="flex items-center space-x-4">
-                <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
-                    <i class="fab fa-github"></i>
-                </a>
-                <button class="btn btn-secondary" onclick="document.getElementById('settings_modal').showModal()"><i class="fa-solid fa-gear"></i></button>
-            </div>
+    <!-- Navbar Section -->
+    <div class="navbar bg-base-100 mb-4 shadow-lg fixed top-0 left-0 right-0 z-50">
+        <!-- Branding Section (Left) -->
+        <div class="flex-1">
+            <a class="text-4xl font-bold" href="#">📚 Reader</a>
         </div>
-        
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Load and Save as PDF Section -->
-            <div class="load-save-container mb-4">
+
+        <!-- Load and Save as PDF Section (Center) -->
+        <div class="flex-none">
+            <div class="flex items-center space-x-4">
                 <input type="text" id="urlInput" placeholder="Enter URL"
-                    class="flex-grow input input-bordered input-secondary w-full" onkeydown="handleKeyDown(event, fetchArticle)">
+                    class="input input-bordered input-secondary" style="width:500px" onkeydown="handleKeyDown(event, fetchArticle)">
                 <button onclick="fetchArticle()" class="btn btn-secondary">
                     Load <i class="fa-solid fa-download ml-2"></i>
                 </button>
@@ -42,14 +36,31 @@
                     Save as PDF
                 </button>
             </div>
-            
+        </div>
+
+        <!-- Icons Section (Right) -->
+        <div class="flex-1 justify-end flex space-x-4">
+            <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
+                <i class="fab fa-github"></i>
+            </a>
+            <button class="btn btn-secondary" onclick="document.getElementById('settings_modal').showModal()">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content Container -->
+    <div class="container mx-auto max-w-4xl px-2 py-2">
+
+        <!-- Main Content -->
+        <div class="main-content">
             <div id="error" class="text-error mb-4"></div>
 
             <!-- Hidden element to store raw article content -->
             <input type="hidden" id="hiddenContent" value="">
 
             <!-- Chatbox Section -->
-            <div id="queryResult" class="prose rounded-lg bg-base-200 overflow-y-auto h-96 p-2 m-auto !max-w-none">
+            <div id="queryResult" class="prose rounded-lg bg-base-200 overflow-y-auto h-96 m-auto !max-w-none pt-10">
             </div>
 
             <!-- Submit Section at the bottom -->
@@ -62,10 +73,9 @@
                     </button>
                 </div>
             </div>
-            
         </div>
 
-        <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
+        <div id="queryLoading" class="hidden flex justify-center items-center">
             <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
