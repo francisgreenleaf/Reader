@@ -22,7 +22,7 @@ const writeHackerNewsLinks = (links) => {
 
         // Load button for the Hacker News story
         const loadButton = document.createElement('button');
-        loadButton.className = 'btn btn-secondary';
+        loadButton.className = 'btn';
         loadButton.innerHTML = 'Load <i class="fa-solid fa-download ml-2"></i>';
         loadButton.onclick = () => {
             document.getElementById('urlInput').value = link.url;

@@ -29,10 +29,10 @@
             <div class="flex items-center space-x-4">
                 <input type="text" id="urlInput" placeholder="Enter URL"
                     class="input input-bordered input-secondary" style="width:500px" onkeydown="handleKeyDown(event, fetchArticle)">
-                <button onclick="fetchArticle()" class="btn btn-secondary">
+                <button onclick="fetchArticle()" class="btn">
                     Load <i class="fa-solid fa-download ml-2"></i>
                 </button>
-                <button onclick="generatePDF()" class="btn btn-secondary">
+                <button onclick="generatePDF()" class="btn">
                     Save as PDF
                 </button>
             </div>
@@ -43,7 +43,7 @@
             <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
                 <i class="fab fa-github"></i>
             </a>
-            <button class="btn btn-secondary" onclick="document.getElementById('settings_modal').showModal()">
+            <button class="btn" onclick="document.getElementById('settings_modal').showModal()">
                 <i class="fa-solid fa-gear"></i>
             </button>
         </div>
@@ -68,7 +68,7 @@
                 <div class="flex items-center space-x-2">
                     <input type="text" id="queryInput" placeholder="Ask a question!"
                         class="flex-grow input input-bordered input-secondary w-full" onkeydown="handleKeyDown(event, queryArticle)">
-                    <button onclick="queryArticle()" class="btn btn-secondary">
+                    <button onclick="queryArticle()" class="btn">
                         Submit <i class="fa-solid fa-paper-plane ml-2"></i>
                     </button>
                 </div>
