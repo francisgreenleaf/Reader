@@ -5,13 +5,13 @@
     <meta charset="ISO-8859-1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reader</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>"">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 </head>
 
 <body>
@@ -23,107 +23,93 @@
                 <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
                     <i class="fab fa-github"></i>
                 </a>
-                <button id="themeToggle" class="btn btn-primary flex items-center space-x-2">
-                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                <button class="btn btn-secondary" onclick="document.getElementById('settings_modal').showModal()"><i class="fa-solid fa-gear"></i></button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Load and Save as PDF Section -->
+            <div class="load-save-container mb-4">
+                <input type="text" id="urlInput" placeholder="Enter URL"
+                    class="flex-grow input input-bordered input-secondary w-full">
+                <button onclick="fetchArticle()" class="btn btn-secondary">
+                    Load <i class="fa-solid fa-download ml-2"></i>
+                </button>
+                <button onclick="generatePDF()" class="btn btn-secondary">
+                    Save as <i class="fa-solid fa-file-pdf"></i>
+                </button>
+            </div>
+            
+            <div id="error" class="text-error mb-4"></div>
+
+            <!-- Hidden element to store raw article content -->
+            <input type="hidden" id="hiddenContent" value="">
+
+            <!-- Chatbox Section -->
+            <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300">
+                <!-- This will display the chat messages -->
+            </div>
+        </div>
+
+        <!-- Submit Section at the bottom -->
+        <div class="submit-section">
+            <label for="queryInput" class="text-sm font-medium">Query:</label>
+            <div class="flex items-center space-x-2 mb-4">
+                <input type="text" id="queryInput" placeholder="Ask a question!"
+                    class="flex-grow input input-bordered input-secondary w-full">
+                <button onclick="queryArticle()" class="btn btn-secondary">
+                    Submit <i class="fa-solid fa-paper-plane ml-2"></i>
                 </button>
             </div>
         </div>
-        <!-- Main Content -->
-        <div class="flex flex-col lg:flex-row gap-4"> <!-- Left Column -->
-            <div class="w-full lg:w-3/5 px-4 mb-4">
-                <label for="urlInput" class="block text-sm font-medium mb-2">Article URL:</label>
-                <div class="flex items-center space-x-2 mb-4">
-                    <input type="text" id="urlInput" placeholder="Enter URL"
-                        class="flex-grow input input-bordered input-secondary w-full">
-                    <button onclick="fetchArticle()" class="btn btn-secondary">
-                        Load <i class="fa-solid fa-download ml-2"></i>
-                    </button>
-                </div>
-                
-                <div id="error" class="text-error mb-4"></div>
 
-                <!-- Summary Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4">
-                    <input type="checkbox" id="summaryCollapse" />
-                    <div class="collapse-title text-xl font-medium">
-                        Summary
-                        <div id="summaryLoading" class="hidden flex justify-center items-center mt-4">
-                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="collapse-content" id="summary">
-                        <p>No summary available.</p>
-                    </div>
-                </div>
+        <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
+            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Processing...
+        </div>
+    </div>
 
-                <!-- Content Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4">
-                    <input type="checkbox" id="contentCollapse" />
-                    <div class="collapse-title text-xl font-medium" id="articleTitle">
-                        Article Content
-                        <div id="contentLoading" class="hidden flex justify-center items-center mt-4">
-                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div id="content" class="collapse-content">
-                        <p>No content available.</p>
-                    </div>
-                    <!-- Hidden element to store raw article content -->
-                    <input type="hidden" id="hiddenContent" value="">
-                </div>
-
-                <button onclick="generatePDF()" class="btn btn-secondary w-full">
-                    Save as PDF
-                </button>
-            </div>
-            <div class="w-full lg:w-2/5 px-4"> <!-- Right Column -->
-                <label for="modelSelect" class="block text-sm font-medium mb-2">Model:</label>
+    <!-- Settings Modal -->
+    <dialog id="settings_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Settings</h3>
+            <div class="py-4">
+                <!-- Model Selection -->
+                <label for="modelSelect" class="block text-sm font-medium mb-2">Select Model:</label>
                 <select id="modelSelect" class="select select-bordered w-full mb-4">
-                    <option default value="gpt-4o-mini">GPT-4o Mini</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
-                
-                <label for="queryInput" class="text-sm font-medium">Query:</label>
-                <div class="flex items-center space-x-2 mb-4">
-                    <input type="text" id="queryInput" placeholder="Ask a question!"
-                        class="flex-grow input input-bordered input-secondary w-full">
-                    <button onclick="queryArticle()" class="btn btn-secondary">
-                        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
-                    </button>
-                </div>
-                
-                <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
-                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Processing...
-                </div>
-                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300"></div>
+
+                <!-- Theme Selection -->
+                <button id="themeToggleModal" class="btn btn-primary w-full"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>Close</button>
+        </form>
+    </dialog>
 </body>
+
 <script src="/static/script.js"></script>
 <script>
-    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeToggleModalBtn = document.getElementById('themeToggleModal');
     const themeIcon = document.getElementById('themeIcon');
     const htmlElement = document.documentElement;
 
-    themeToggleBtn.addEventListener('click', () => {
+    // Function to toggle the theme
+    function toggleTheme() {
         const currentTheme = htmlElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'retro' ? 'dracula' : 'retro';
-        
+        const newTheme = currentTheme === 'dracula' ? 'retro' : 'dracula';
+
         htmlElement.setAttribute('data-theme', newTheme);
 
-        // Update icon and text based on the new theme
+        // Update icon based on theme
         if (newTheme === 'dracula') {
             themeIcon.classList.remove('fa-sun');
             themeIcon.classList.add('fa-moon');
@@ -131,6 +117,9 @@
             themeIcon.classList.remove('fa-moon');
             themeIcon.classList.add('fa-sun');
         }
-    });
+    }
+
+    // Toggle theme on button click in modal
+    themeToggleModalBtn.addEventListener('click', toggleTheme);
 </script>
 </html>
