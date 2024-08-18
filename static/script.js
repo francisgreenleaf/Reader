@@ -1,12 +1,26 @@
 let articleTitle = '';
-let topImageUrl = ''
+let topImageUrl = '';
+const converter = new showdown.Converter();
 
 // Function to write messages to the chatbox
 const writeToChat = (isAI, message, color="") => {
     const queryResultElement = document.getElementById('queryResult');
-    queryResultElement.innerHTML += `<div class="chat chat-${isAI ? 'start' : 'end'}">
-            <div class="chat-bubble ${color === "" ? "" : "chat-bubble-" + color}">${message}</div>
-        </div>`;
+    
+    // Create the chat bubble element
+    const chatBubble = document.createElement('div');
+    chatBubble.className = `chat-bubble ${color === "" ? "" : "chat-bubble-" + color}`;
+    chatBubble.innerHTML = converter.makeHtml(message);
+
+    // Create the chat container element
+    const chatContainer = document.createElement('div');
+    chatContainer.className = `chat chat-${isAI ? 'start' : 'end'}`;
+    chatContainer.appendChild(chatBubble);
+
+    // Append the chat container to the chatbox
+    queryResultElement.appendChild(chatContainer);
+
+    // Scroll to the bottom of the chatbox
+    queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
 // Function to write Hacker News links to the chatbox in a grid layout with a load button
@@ -19,7 +33,7 @@ const writeHackerNewsLinks = (links) => {
 
     links.forEach(link => {
         const linkElement = document.createElement('div');
-        linkElement.className = 'block p-4 bg-primary text-white rounded-lg text-center';
+        linkElement.className = 'block p-4 bg-primary text-white rounded-lg text-center centered-container';
 
         // Title of the Hacker News story
         const titleElement = document.createElement('a');
@@ -46,6 +60,9 @@ const writeHackerNewsLinks = (links) => {
     });
 
     queryResultElement.appendChild(newsContainer);
+
+    // Scroll to the bottom of the chatbox
+    queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
 // Function to fetch top 5 Hacker News stories
@@ -92,7 +109,7 @@ async function fetchArticle() {
         articleTitle = article.title;
         topImageUrl = article.top_image_url;
 
-        writeToChat(true, `#${articleTitle}<br><br>${article.summary}`, 'primary');
+        writeToChat(true, `##${articleTitle}\n\n${article.summary}`, 'primary');
 
         hiddenContentElement.value = article.content; // Store raw content in hidden element
 
