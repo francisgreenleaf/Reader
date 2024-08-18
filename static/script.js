@@ -32,7 +32,7 @@ async function fetchArticle() {
         articleTitle = article.title;
         topImageUrl = article.top_image_url;
 
-        writeToChat(true, `#${articleTitle}<br><br>${article.summary}`);
+        writeToChat(true, `#${articleTitle}<br><br>${article.summary}`, 'primary');
 
         // articleTitleElement.childNodes[0].textContent = article.title;
 
