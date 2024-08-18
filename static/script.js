@@ -86,6 +86,7 @@ async function generatePDF() {
 
 async function queryArticle() {
     const query = document.getElementById('queryInput').value;
+    writeToChat(false, query);
     const model = document.getElementById('modelSelect').value;
     const hiddenContentElement = document.getElementById('hiddenContent');
     // const queryResultElement = document.getElementById('queryResult');
