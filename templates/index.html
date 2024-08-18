@@ -99,7 +99,41 @@
                 </select>
 
                 <!-- Theme Selection -->
-                <button id="themeToggleModal" class="btn btn-primary w-full"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+                <label for="themeSelect" class="block text-sm font-medium mb-2">Select Theme:</label>
+                <select id="themeSelect" class="select select-bordered w-full mb-4">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="cupcake">Cupcake</option>
+                    <option value="bumblebee">Bumblebee</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="synthwave">Synthwave</option>
+                    <option value="retro">Retro</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="valentine">Valentine</option>
+                    <option value="halloween">Halloween</option>
+                    <option value="garden">Garden</option>
+                    <option value="forest">Forest</option>
+                    <option value="aqua">Aqua</option>
+                    <option value="lofi">Lofi</option>
+                    <option value="pastel">Pastel</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="wireframe">Wireframe</option>
+                    <option value="black">Black</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="dracula" selected>Dracula</option>
+                    <option value="cmyk">CMYK</option>
+                    <option value="autumn">Autumn</option>
+                    <option value="business">Business</option>
+                    <option value="acid">Acid</option>
+                    <option value="lemonade">Lemonade</option>
+                    <option value="night">Night</option>
+                    <option value="coffee">Coffee</option>
+                    <option value="winter">Winter</option>
+                    <option value="dim">Dim</option>
+                    <option value="nord">Nord</option>
+                    <option value="sunset">Sunset</option>
+                </select>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -110,29 +144,18 @@
 
 <script src="/static/script.js"></script>
 <script>
-    const themeToggleModalBtn = document.getElementById('themeToggleModal');
-    const themeIcon = document.getElementById('themeIcon');
+    const themeSelectElement = document.getElementById('themeSelect');
     const htmlElement = document.documentElement;
 
-    // Function to toggle the theme
-    function toggleTheme() {
-        const currentTheme = htmlElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dracula' ? 'retro' : 'dracula';
-
-        htmlElement.setAttribute('data-theme', newTheme);
-
-        // Update icon based on theme
-        if (newTheme === 'dracula') {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        } else {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        }
+    // Function to apply the selected theme
+    function applyTheme(theme) {
+        htmlElement.setAttribute('data-theme', theme);
     }
 
-    // Toggle theme on button click in modal
-    themeToggleModalBtn.addEventListener('click', toggleTheme);
+    // Listen for changes in the theme dropdown
+    themeSelectElement.addEventListener('change', (event) => {
+        applyTheme(event.target.value);
+    });
 
     // Function to handle Enter key press
     function handleKeyDown(event, action) {

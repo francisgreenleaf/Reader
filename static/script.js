@@ -29,7 +29,7 @@ const writeHackerNewsLinks = (links) => {
     queryResultElement.innerHTML = ''; // Clear any previous content
 
     const newsContainer = document.createElement('div');
-    newsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    newsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
 
     links.forEach(link => {
         const linkElement = document.createElement('div');

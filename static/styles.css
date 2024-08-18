@@ -1,3 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fix list Issues */
+@layer base {
+  ul, ol {
+    list-style: revert;
+  }
+}
+
 /* Ensure the container takes the full height of the viewport */
 .container {
     display: flex;
@@ -31,4 +42,10 @@
 .load-save-container {
     display: flex;
     gap: 8px;
+}
+
+/* Reduce the spaces of Header */
+.prose h1, .prose h2, .prose h3, .prose h4{
+    margin-top: 1em;
+    margin-bottom: .5em;
 }
