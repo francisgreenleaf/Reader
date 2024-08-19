@@ -1,10 +1,15 @@
 /**
  * Function to write a new section (title + content) to the chatbox without clearing previous content.
+ * The section will only load content when the "Load More" button is clicked.
  * @param {string} title - The title of the section.
- * @param {Array} elements - Array of HTML strings representing individual elements (links, papers, etc.).
+ * @param {Function} loadFunction - Function to be called when the "Load More" button is clicked.
  */
-const writeSectionToChat = (title, elements) => {
+const writeSectionToChat = (title, loadFunction) => {
     const queryResultElement = document.getElementById('queryResult');
+
+    // Create a wrapper for the section
+    const sectionWrapper = document.createElement('div');
+    sectionWrapper.className = 'section-wrapper my-4';
 
     // Add the title element
     const titleElement = `
@@ -13,90 +18,37 @@ const writeSectionToChat = (title, elements) => {
             <hr class="border-t-2 border-gray-300 mb-6">
         </div>
     `;
-    queryResultElement.innerHTML += titleElement;
+    sectionWrapper.innerHTML = titleElement;
 
-    // Create a container for the elements
-    const container = document.createElement('div');
-    container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
+    // Create a container for the content
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'content-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
 
-    // Add each element to the container
-    elements.forEach(elementHTML => {
-        container.innerHTML += elementHTML;
-    });
+    // Create a "Load More" button
+    const loadMoreButton = document.createElement('button');
+    loadMoreButton.className = 'btn w-full mt-4';
+    loadMoreButton.textContent = 'Load More';
+    loadMoreButton.onclick = () => {
+        loadFunction(contentContainer, loadMoreButton);
+    };
 
-    // Append the container to the chatbox
-    queryResultElement.appendChild(container);
+    sectionWrapper.appendChild(loadMoreButton);
+    sectionWrapper.appendChild(contentContainer);
+    queryResultElement.appendChild(sectionWrapper);
 
     // Scroll to the bottom of the chatbox
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
 /**
- * Function to write Hacker News links to the chatbox.
- * @param {Array} links - Array of objects containing Hacker News links, titles, scores, and authors.
+ * Function to load Hacker News links into the specified container.
+ * @param {HTMLElement} container - The container to load the content into.
+ * @param {HTMLElement} loadMoreButton - The "Load More" button.
  */
-const writeHackerNewsLinks = (links) => {
-    const elements = links.map(link => {
-        return `
-            <div class="relative flex flex-col justify-center p-4 bg-primary text-white rounded-lg pb-10 text-center">
-                <!-- Title of the Hacker News story -->
-                <a href="${link.url}" target="_blank" class="font-bold text-lg mb-2">
-                    ${link.title}
-                </a>
-                <!-- Load Button -->
-                <button class="btn w-32 m-auto" onclick="document.getElementById('urlInput').value='${link.url}'; fetchArticle();">
-                    Load <i class="fa-solid fa-download ml-2"></i>
-                </button>
-                <!-- Score (positioned at the bottom right) -->
-                <span class="absolute bottom-2 right-2 bg-yellow-500 text-black rounded-full px-3 py-1 text-xs">
-                    Score: ${link.score}
-                </span>
-                <!-- Author (positioned at the bottom left) -->
-                <a href="https://news.ycombinator.com/user?id=${link.by}" target="_blank" class="absolute bottom-2 left-2 bg-gray-700 text-white rounded-full px-3 py-1 text-xs">
-                    By: ${link.by}
-                </a>
-            </div>
-        `;
-    });
-
-    writeSectionToChat("Hacker News", elements);
-};
-
-/**
- * Function to write Arxiv papers to the chatbox.
- * @param {Array} papers - Array of objects containing Arxiv papers, titles, authors, and links.
- */
-const writeArxivPapers = (papers) => {
-    const elements = papers.map(paper => {
-        return `
-            <div class="relative flex flex-col justify-center p-4 bg-primary text-white rounded-lg pb-10 text-center">
-                <!-- Title of the Arxiv paper -->
-                <a href="${paper.link}" target="_blank" class="font-bold text-lg mb-2">
-                    ${paper.title}
-                </a>
-                <!-- Authors -->
-                <span class=" rounded-4 px-3 py-1 text-xs">
-                    Authors: ${paper.authors}
-                </span>
-                <!-- Load Button -->
-                <button class="btn w-32 m-auto" onclick="window.open('${paper.link}', '_blank');">
-                    Load <i class="fa-solid fa-download ml-2"></i>
-                </button>
-            </div>
-        `;
-    });
-
-    writeSectionToChat("Arxiv Papers", elements);
-};
-
-/**
- * Function to fetch the top Hacker News stories and display them in the chatbox.
- * @param {number} [numberOfNews=6] - Number of top Hacker News stories to fetch.
- */
-const fetchHackerNews = async (numberOfNews = 6) => {
+const loadHackerNewsLinks = async (container, loadMoreButton) => {
     try {
         const response = await axios.get('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty');
-        const topIds = response.data.slice(0, numberOfNews);
+        const topIds = response.data.slice(0, 6); // Load the first 6 stories
 
         const stories = await Promise.all(
             topIds.map(async (id) => {
@@ -106,11 +58,34 @@ const fetchHackerNews = async (numberOfNews = 6) => {
                 // If story.url is missing, construct the URL using the Hacker News item ID
                 const url = story.url ? story.url : `https://news.ycombinator.com/item?id=${story.id}`;
 
-                return { title: story.title, url: url, by: story.by, score: story.score };
+                return `
+                    <div class="relative flex flex-col justify-center p-4 bg-primary text-white rounded-lg pb-10 text-center">
+                        <!-- Title of the Hacker News story -->
+                        <a href="${url}" target="_blank" class="font-bold text-lg mb-2">
+                            ${story.title}
+                        </a>
+                        <!-- Load Button -->
+                        <button class="btn w-32 m-auto" onclick="document.getElementById('urlInput').value='${url}'; fetchArticle();">
+                            Load <i class="fa-solid fa-download ml-2"></i>
+                        </button>
+                        <!-- Score (positioned at the bottom right) -->
+                        <span class="absolute bottom-2 right-2 bg-yellow-500 text-black rounded-full px-3 py-1 text-xs">
+                            Score: ${story.score}
+                        </span>
+                        <!-- Author (positioned at the bottom left) -->
+                        <a href="https://news.ycombinator.com/user?id=${story.by}" target="_blank" class="absolute bottom-2 left-2 bg-gray-700 text-white rounded-full px-3 py-1 text-xs">
+                            By: ${story.by}
+                        </a>
+                    </div>
+                `;
             })
         );
 
-        writeHackerNewsLinks(stories);
+        // Append the stories to the container
+        container.innerHTML = stories.join('');
+
+        // Hide the "Load More" button after loading
+        loadMoreButton.style.display = 'none';
 
     } catch (error) {
         writeToChat(true, `Error fetching Hacker News stories.`, 'error');
@@ -119,12 +94,13 @@ const fetchHackerNews = async (numberOfNews = 6) => {
 };
 
 /**
- * Function to fetch the latest Arxiv papers and display them in the chatbox.
- * @param {number} [numberOfPapers=6] - Number of Arxiv papers to fetch.
+ * Function to load Arxiv papers into the specified container.
+ * @param {HTMLElement} container - The container to load the content into.
+ * @param {HTMLElement} loadMoreButton - The "Load More" button.
  */
-const fetchArxivPapers = async (numberOfPapers = 6) => {
+const loadArxivPapers = async (container, loadMoreButton) => {
     try {
-        const response = await axios.get(`http://export.arxiv.org/api/query?search_query=all&start=0&max_results=${numberOfPapers}&sortBy=lastUpdatedDate&sortOrder=descending`);
+        const response = await axios.get(`http://export.arxiv.org/api/query?search_query=all&start=0&max_results=6&sortBy=lastUpdatedDate&sortOrder=descending`);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
 
@@ -133,10 +109,29 @@ const fetchArxivPapers = async (numberOfPapers = 6) => {
             const title = entry.getElementsByTagName("title")[0].textContent.trim();
             const authors = Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent.trim()).join(", ");
             const link = entry.getElementsByTagName("id")[0].textContent.trim();
-            return { title, authors, link };
+            return `
+                <div class="relative flex flex-col justify-center p-4 bg-primary text-white rounded-lg pb-10 text-center">
+                    <!-- Title of the Arxiv paper -->
+                    <a href="${link}" target="_blank" class="font-bold text-lg mb-2">
+                        ${title}
+                    </a>
+                    <!-- Authors -->
+                    <span class="block mb-2 text-sm">
+                        Authors: ${authors}
+                    </span>
+                    <!-- Load Button -->
+                    <button class="btn w-32 m-auto" onclick="window.open('${link}', '_blank');">
+                        Load <i class="fa-solid fa-download ml-2"></i>
+                    </button>
+                </div>
+            `;
         });
 
-        writeArxivPapers(papers);
+        // Append the papers to the container
+        container.innerHTML = papers.join('');
+
+        // Hide the "Load More" button after loading
+        loadMoreButton.style.display = 'none';
 
     } catch (error) {
         writeToChat(true, `Error fetching Arxiv papers.`, 'error');
@@ -144,15 +139,8 @@ const fetchArxivPapers = async (numberOfPapers = 6) => {
     }
 };
 
-/**
- * Function to load both Arxiv papers and Hacker News stories when the chatbox is empty.
- */
-const loadContentIfEmpty = () => {
-    const queryResultElement = document.getElementById('queryResult');
-    if (queryResultElement.innerHTML.trim() === "") {
-        fetchArxivPapers();
-        fetchHackerNews();
-    }
+// Initialize sections with "Load More" buttons
+window.onload = () => {
+    writeSectionToChat('Hacker News', loadHackerNewsLinks);
+    writeSectionToChat('Arxiv Papers', loadArxivPapers);
 };
-
-window.onload = loadContentIfEmpty;
