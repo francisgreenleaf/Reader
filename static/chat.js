@@ -34,10 +34,8 @@ const writeToChat = (isAI, message, color="") => {
  */
 const fetchArticle = async () => {
     const url = document.getElementById('urlInput').value;
-    const errorElement = document.getElementById('error');
     const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
 
-    errorElement.textContent = '';
     hiddenContentElement.value = ''; // Clear the hidden content field
 
     try {
@@ -51,7 +49,8 @@ const fetchArticle = async () => {
         hiddenContentElement.value = article.content; // Store raw content in hidden element
 
     } catch (error) {
-        errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
+        writeToChat(true, `Error fetching article.`, 'error');
+        console.error(`Error fetching article: \n${error.response?.data?.error || error.message}`);
     }
 }
 
@@ -65,7 +64,7 @@ const generatePDF = async () => {
     const images = [];
 
     if (!content) {
-        console.error('Content is empty. Cannot generate PDF.');
+        writeToChat(true, `Error Content is empty. Cannot generate PDF.`, 'error');
         return;
     }
 
@@ -78,7 +77,8 @@ const generatePDF = async () => {
         document.body.appendChild(link);
         link.click();
     } catch (error) {
-        console.error('Error generating PDF:', error);
+        writeToChat(true, `Error generating PDF.`, 'error');
+        console.error(`Error generating PDF:\n${error}`);
     }
 }
 
@@ -97,7 +97,6 @@ const queryArticle = async () => {
     queryLoadingElement.classList.remove('hidden');
 
     if (!content) {
-        console.error('Content is empty. Cannot perform query.');
         writeToChat(true, `Error: Content is empty. Please load an article`, 'error');
         queryLoadingElement.classList.add('hidden');
         return;
@@ -107,7 +106,8 @@ const queryArticle = async () => {
         const response = await axios.post('/query', { content: content, query: query, model: model });
         writeToChat(true, response.data.result);
     } catch (error) {
-        writeToChat(true, `Error querying article: ${error.response?.data?.error || error.message}`, 'error');
+        writeToChat(true, `Error querying article.`, 'error');
+        console.error(`Error querying article:\n${error.response?.data?.error || error.message}`);
     } finally {
         queryLoadingElement.classList.add('hidden');
     }

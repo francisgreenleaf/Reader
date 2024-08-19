@@ -1,6 +1,6 @@
 /**
  * Function to write Hacker News links to the chatbox in a grid layout with a load button.
- * @param {Array} links - Array of objects containing Hacker News links and titles.
+ * @param {Array} links - Array of objects containing Hacker News links, titles, scores, and authors.
  */
 const writeHackerNewsLinks = (links) => {
     const queryResultElement = document.getElementById('queryResult');
@@ -10,31 +10,28 @@ const writeHackerNewsLinks = (links) => {
     newsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
 
     links.forEach(link => {
-        const linkElement = document.createElement('div');
-        linkElement.className = 'flex flex-col justify-center items-center p-4 bg-primary text-white rounded-lg text-center';
+        const linkHTML = `
+            <div class="relative flex flex-col justify-center p-4 bg-primary text-white rounded-lg pb-10 text-center">
+                <a href="${link.url}" target="_blank" class="font-bold text-lg mb-2">
+                    ${link.title}
+                </a>
 
-        // Title of the Hacker News story
-        const titleElement = document.createElement('a');
-        titleElement.href = link.url;
-        titleElement.target = '_blank';
-        titleElement.className = 'mb-2';
-        titleElement.innerText = link.title;
+                <button class="btn w-32 m-auto" onclick="document.getElementById('urlInput').value='${link.url}'; fetchArticle();">
+                    Load <i class="fa-solid fa-download ml-2"></i>
+                </button>
 
-        // Load button for the Hacker News story
-        const loadButton = document.createElement('button');
-        loadButton.className = 'btn';
-        loadButton.innerHTML = 'Load <i class="fa-solid fa-download ml-2"></i>';
-        loadButton.onclick = () => {
-            document.getElementById('urlInput').value = link.url;
-            fetchArticle(); // Fetch the article as if it were loaded from the URL input
-        };
+                <span class="absolute bottom-2 right-2 bg-yellow-500 text-black rounded-full px-3 py-1 text-xs">
+                    Score: ${link.score}
+                </span>
 
-        // Append title and button to the story box
-        linkElement.appendChild(titleElement);
-        linkElement.appendChild(loadButton);
+                <a href="https://news.ycombinator.com/user?id=${link.by}" target="_blank" class="absolute bottom-2 left-2 bg-gray-700 text-white rounded-full px-3 py-1 text-xs">
+                    By: ${link.by}
+                </a>
+            </div>
+        `;
 
-        // Add the story box to the container
-        newsContainer.appendChild(linkElement);
+        // Append the HTML to the container
+        newsContainer.innerHTML += linkHTML;
     });
 
     queryResultElement.appendChild(newsContainer);
@@ -43,30 +40,37 @@ const writeHackerNewsLinks = (links) => {
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
+
 /**
  * Function to fetch the top Hacker News stories and display them in the chatbox.
  * @param {number} [numberOfNews=6] - Number of top Hacker News stories to fetch.
  */
-const fetchHackerNews = async (numberOfNews=6) => {
+const fetchHackerNews = async (numberOfNews = 6) => {
     try {
         const response = await axios.get('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty');
-        const top5Ids = response.data.slice(0, numberOfNews);
+        const topIds = response.data.slice(0, numberOfNews);
 
         const stories = await Promise.all(
-            top5Ids.map(async (id) => {
+            topIds.map(async (id) => {
                 const storyResponse = await axios.get(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`);
-                return storyResponse.data;
+                const story = storyResponse.data;
+                console.log(story);
+                
+                // If story.url is missing, construct the URL using the Hacker News item ID
+                const url = story.url ? story.url : `https://news.ycombinator.com/item?id=${story.id}`;
+
+                return { title: story.title, url: url, by: story.by, score: story.score };
             })
         );
 
-        // Display the top 5 stories in a grid layout with load buttons
-        writeHackerNewsLinks(stories.map(story => ({ title: story.title, url: story.url })));
+        writeHackerNewsLinks(stories);
 
     } catch (error) {
+        writeToChat(true, `Error fetching Hacker News stories.`, 'error');
         console.error('Error fetching Hacker News stories:', error);
-        writeToChat(true, 'Error fetching Hacker News stories.', 'error');
     }
 }
+
 
 /**
  * Function to check if the chatbox is empty and load Hacker News stories if it is.
