@@ -1,120 +1,33 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dracula">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="ISO-8859-1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reader</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>"">
+{% block content %}
+    <div class="main-content">
+        <div id="error" class="text-error mb-4"></div>
 
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+        <!-- Hidden element to store raw article content -->
+        <input type="hidden" id="hiddenContent" value="">
 
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
-</head>
-
-<body>
-    <!-- Navbar Section -->
-    <div class="navbar bg-base-100 mb-4 shadow-lg fixed top-0 left-0 right-0 z-50">
-        <!-- Branding Section (Left) -->
-        <div class="flex-1">
-            <a class="text-4xl font-bold" href="#">📚 Reader</a>
+        <!-- Chatbox Section -->
+        <div id="queryResult" class="prose rounded-lg bg-base-200 overflow-y-auto h-96 m-auto !max-w-none pt-10">
         </div>
 
-        <!-- Load and Save as PDF Section (Center) -->
-        <div class="flex-none">
-            <div class="flex items-center space-x-4">
-                <input type="text" id="urlInput" placeholder="Enter URL"
-                    class="input input-bordered input-secondary" style="width:500px" onkeydown="handleKeyDown(event, fetchArticle)">
-                <button onclick="fetchArticle()" class="btn">
-                    Load <i class="fa-solid fa-download ml-2"></i>
-                </button>
-                <button onclick="generatePDF()" class="btn">
-                    Save as PDF
+        <!-- Submit Section at the bottom -->
+        <div class="submit-section mt-4">
+            <div class="flex items-center space-x-2">
+                <input type="text" id="queryInput" placeholder="Ask a question!"
+                    class="flex-grow input input-bordered input-secondary w-full" onkeydown="handleKeyDown(event, queryArticle)">
+                <button onclick="queryArticle()" class="btn">
+                    Submit <i class="fa-solid fa-paper-plane ml-2"></i>
                 </button>
             </div>
         </div>
-
-        <!-- Icons Section (Right) -->
-        <div class="flex-1 justify-end flex space-x-4">
-            <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
-                <i class="fab fa-github"></i>
-            </a>
-            <button class="btn" onclick="document.getElementById('settings_modal').showModal()">
-                <i class="fa-solid fa-gear"></i>
-            </button>
-        </div>
-    </div>
-    
-    <!-- Main Content Container -->
-    <div class="container mx-auto max-w-4xl px-2 py-2">
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <div id="error" class="text-error mb-4"></div>
-
-            <!-- Hidden element to store raw article content -->
-            <input type="hidden" id="hiddenContent" value="">
-
-            <!-- Chatbox Section -->
-            <div id="queryResult" class="prose rounded-lg bg-base-200 overflow-y-auto h-96 m-auto !max-w-none pt-10">
-            </div>
-
-            <!-- Submit Section at the bottom -->
-            <div class="submit-section">
-                <div class="flex items-center space-x-2">
-                    <input type="text" id="queryInput" placeholder="Ask a question!"
-                        class="flex-grow input input-bordered input-secondary w-full" onkeydown="handleKeyDown(event, queryArticle)">
-                    <button onclick="queryArticle()" class="btn">
-                        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="queryLoading" class="hidden flex justify-center items-center">
-            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-            Processing...
-        </div>
     </div>
 
-    <!-- Settings Modal -->
-    <dialog id="settings_modal" class="modal">
-        <div class="modal-box">
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-lg font-bold">Settings</h3>
-            <div class="py-4">
-                <!-- Model Selection -->
-                <label for="modelSelect" class="block text-sm font-medium mb-2">Select Model:</label>
-                <select id="modelSelect" class="select select-bordered w-full mb-4">
-                    <option value="gpt-4o-mini">GPT-4o Mini</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    <option value="gpt-4o">GPT-4o</option>
-                </select>
-
-                <!-- Theme Selection -->
-                <label for="themeSelect" class="block text-sm font-medium mb-2">Select Theme:</label>
-                <select id="themeSelect" class="select select-bordered w-full mb-4">
-                    <!-- The options will be generated by JavaScript -->
-                </select>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>Close</button>
-        </form>
-    </dialog>
-</body>
-
-<script src="/static/utils.js"></script>
-<script src="/static/themes.js"></script>
-<script src="/static/chat.js"></script>
-<script src="/static/news.js"></script>
-</html>
+    <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
+        <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Processing...
+    </div>
+{% endblock %}

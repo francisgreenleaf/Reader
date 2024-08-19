@@ -7,6 +7,9 @@
   ul, ol {
     list-style: revert;
   }
+  p {
+    margin: .5em;
+  }
 }
 
 .centered-container {
