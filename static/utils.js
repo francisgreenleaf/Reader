@@ -9,3 +9,16 @@ const handleKeyDown = (event, action) => {
         action();
     }
 }
+
+// Function to save the API key to localStorage
+document.getElementById('saveApiKeyButton').addEventListener('click', () => {
+    const apiKey = document.getElementById('apiKeyInput').value;
+    if (apiKey) {
+        localStorage.setItem('openai_api_key', apiKey);
+    }
+});
+
+// Function to retrieve the API key from localStorage
+function getApiKey() {
+    return localStorage.getItem('openai_api_key') || null;
+}
