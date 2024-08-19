@@ -68,14 +68,14 @@ marshmallow==3.21.3
 multidict==6.0.5
 mypy-extensions==1.0.0
 nest-asyncio==1.6.0
-networkx==3.2.1
+networkx==3.1
 newspaper3k==0.2.8
 nltk==3.8.1
-numpy==1.26.4
+numpy==1.24.4
 openai==1.40.1
 orjson==3.10.7
 packaging==24.1
-pandas==2.2.2
+pandas==2.0.3
 pillow==10.4.0
 pydantic==2.8.2
 pydantic_core==2.20.1
