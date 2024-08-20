@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@supports not (color: oklch(0% 0 0)) {
+    :root {
+        color-scheme:light;
+        --fallback-b1: #ffffff;
+        --fallback-b2: #e5e6e6;
+    }
+
+    @media(prefers-color-scheme: dark) {
+        :root {
+            color-scheme:dark;
+            --fallback-b1: #3a424a;
+            --fallback-b2: #191e24;
+        }
+    }
+}
+
 /* Fix list Issues */
 @layer base {
   ul, ol {
@@ -57,4 +73,14 @@
 .prose h1, .prose h2, .prose h3, .prose h4{
     margin-top: 1em;
     margin-bottom: .5em;
+}
+
+.bg-lines {
+    background-image: repeating-linear-gradient(
+        45deg,
+        var(--fallback-b1,oklch(var(--b1))),
+        var(--fallback-b1,oklch(var(--b1))) 13px,
+        var(--fallback-b2,oklch(var(--b2))) 13px,
+        var(--fallback-b2,oklch(var(--b2))) 14px);
+    background-size: 40px 40px;
 }
