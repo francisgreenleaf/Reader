@@ -37,8 +37,13 @@ const fetchArticle = async () => {
     const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
     const queryLoadingElement = document.getElementById('queryLoading');
 
+    // Move the loading spinner to be the last child
+    const queryResultElement = document.getElementById('queryResult');
+    queryResultElement.appendChild(queryLoadingElement);
+
     hiddenContentElement.value = ''; // Clear the hidden content field
     queryLoadingElement.classList.remove('hidden'); // Show loading spinner
+    queryResultElement.scrollTop = queryResultElement.scrollHeight;
 
     try {
         const response = await axios.post('/fetch', { url: url });
@@ -92,17 +97,21 @@ const generatePDF = async () => {
 const queryArticle = async () => {
     const queryInputElement = document.getElementById('queryInput');
     const query = queryInputElement.value;
+    writeToChat(false, query);
     const model = document.getElementById('modelSelect').value;
     const hiddenContentElement = document.getElementById('hiddenContent');
     const queryLoadingElement = document.getElementById('queryLoading');
     const content = hiddenContentElement.value.trim();
 
-    writeToChat(false, query);
-    queryLoadingElement.classList.remove('hidden'); // Show loading spinner
+    // Move the loading spinner to be the last child
+    const queryResultElement = document.getElementById('queryResult');
+    queryResultElement.appendChild(queryLoadingElement);
+
+    queryLoadingElement.classList.remove('hidden');
 
     if (!content) {
         writeToChat(true, `Error: Content is empty. Please load an article`, 'error');
-        queryLoadingElement.classList.add('hidden'); // Hide loading spinner
+        queryLoadingElement.classList.add('hidden');
         return;
     }
 
@@ -113,7 +122,7 @@ const queryArticle = async () => {
         writeToChat(true, `Error querying article.`, 'error');
         console.error(`Error querying article:\n${error.response?.data?.error || error.message}`);
     } finally {
-        queryLoadingElement.classList.add('hidden'); // Hide loading spinner
-        queryInputElement.value = '';  // Clear the input field after the query is sent
+        queryLoadingElement.classList.add('hidden');
+        queryInputElement.value = '';
     }
-}
+};

@@ -42,7 +42,7 @@
 
 /* Reduce the spaces of Header */
 .prose h1, .prose h2, .prose h3, .prose h4{
-    margin-top: 1em;
+    margin-top: .5em;
     margin-bottom: .5em;
 }
 
