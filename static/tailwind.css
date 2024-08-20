@@ -4,9 +4,7 @@
 
 /* Fix list Issues */
 @layer base {
-    ul, ol {
-        list-style: revert;
-    }
+
     p {
         margin: .5em;
     }

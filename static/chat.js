@@ -87,7 +87,8 @@ const generatePDF = async () => {
  * It uses the selected AI model to answer the query based on the article's content.
  */
 const queryArticle = async () => {
-    const query = document.getElementById('queryInput').value;
+    const queryInputElement = document.getElementById('queryInput');
+    const query = queryInputElement.value;
     writeToChat(false, query);
     const model = document.getElementById('modelSelect').value;
     const hiddenContentElement = document.getElementById('hiddenContent');
@@ -110,5 +111,6 @@ const queryArticle = async () => {
         console.error(`Error querying article:\n${error.response?.data?.error || error.message}`);
     } finally {
         queryLoadingElement.classList.add('hidden');
+        queryInputElement.value = '';
     }
 }

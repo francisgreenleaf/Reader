@@ -13,7 +13,7 @@ const writeSectionToChat = (title, loadFunction) => {
 
     // Add the title element
     const titleElement = `
-        <div class="w-full text-center my-4">
+        <div class="w-full text-center">
             <h2 class="text-2xl font-bold">${title}</h2>
             <hr class="border-t-2 border-gray-300 mb-6">
         </div>
@@ -30,11 +30,11 @@ const writeSectionToChat = (title, loadFunction) => {
 
     // Create a container for the content
     const contentContainer = document.createElement('div');
-    contentContainer.className = 'content-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
+    contentContainer.className = 'content-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mx-6 mb-4 mt-0';
 
-    sectionWrapper.appendChild(loadMoreButton); // Append Load More button to the section wrapper
-    sectionWrapper.appendChild(contentContainer); // Append content container
-    queryResultElement.appendChild(sectionWrapper); // Append the section wrapper to the query result element
+    sectionWrapper.appendChild(loadMoreButton);
+    sectionWrapper.appendChild(contentContainer);
+    queryResultElement.appendChild(sectionWrapper);
 
     // Scroll to the bottom of the chatbox
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
