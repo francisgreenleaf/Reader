@@ -35,8 +35,10 @@ const writeToChat = (isAI, message, color="") => {
 const fetchArticle = async () => {
     const url = document.getElementById('urlInput').value;
     const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
+    const queryLoadingElement = document.getElementById('queryLoading');
 
     hiddenContentElement.value = ''; // Clear the hidden content field
+    queryLoadingElement.classList.remove('hidden'); // Show loading spinner
 
     try {
         const response = await axios.post('/fetch', { url: url });
@@ -45,12 +47,13 @@ const fetchArticle = async () => {
         topImageUrl = article.top_image_url;
 
         writeToChat(true, `##${articleTitle}\n\n${article.summary}`, 'primary');
-
         hiddenContentElement.value = article.content; // Store raw content in hidden element
 
     } catch (error) {
         writeToChat(true, `Error fetching article.`, 'error');
-        console.error(`Error fetching article: \n${error.response?.data?.error || error.message}`);
+        console.error(`Error fetching article:\n${error.response?.data?.error || error.message}`);
+    } finally {
+        queryLoadingElement.classList.add('hidden'); // Hide loading spinner
     }
 }
 
@@ -89,17 +92,17 @@ const generatePDF = async () => {
 const queryArticle = async () => {
     const queryInputElement = document.getElementById('queryInput');
     const query = queryInputElement.value;
-    writeToChat(false, query);
     const model = document.getElementById('modelSelect').value;
     const hiddenContentElement = document.getElementById('hiddenContent');
     const queryLoadingElement = document.getElementById('queryLoading');
     const content = hiddenContentElement.value.trim();
 
-    queryLoadingElement.classList.remove('hidden');
+    writeToChat(false, query);
+    queryLoadingElement.classList.remove('hidden'); // Show loading spinner
 
     if (!content) {
         writeToChat(true, `Error: Content is empty. Please load an article`, 'error');
-        queryLoadingElement.classList.add('hidden');
+        queryLoadingElement.classList.add('hidden'); // Hide loading spinner
         return;
     }
 
@@ -110,7 +113,7 @@ const queryArticle = async () => {
         writeToChat(true, `Error querying article.`, 'error');
         console.error(`Error querying article:\n${error.response?.data?.error || error.message}`);
     } finally {
-        queryLoadingElement.classList.add('hidden');
-        queryInputElement.value = '';
+        queryLoadingElement.classList.add('hidden'); // Hide loading spinner
+        queryInputElement.value = '';  // Clear the input field after the query is sent
     }
 }

@@ -40,6 +40,27 @@ const writeSectionToChat = (title, loadFunction) => {
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
+const loadNewsContent = async (loadFunction, container, loadMoreButton) => {
+    const queryLoadingElement = document.createElement('div');
+    queryLoadingElement.className = 'absolute inset-0 flex justify-center items-center bg-opacity-75 bg-white z-50'; // Add absolute positioning and styling for centering
+    queryLoadingElement.innerHTML = `
+        <svg class="animate-spin h-8 w-8 mr-3" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Loading...
+    `;
+    container.style.position = 'relative'; // Ensure the container has relative positioning
+    container.appendChild(queryLoadingElement); // Show loading spinner
+
+    try {
+        await loadFunction(container, loadMoreButton);
+    } finally {
+        container.removeChild(queryLoadingElement); // Hide loading spinner
+    }
+}
+
+
 // Initialize sections with "Load More" buttons
 window.onload = () => {
     writeSectionToChat('Hacker News', loadHackerNewsLinks);
