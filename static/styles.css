@@ -1,32 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@supports not (color: oklch(0% 0 0)) {
-    :root {
-        color-scheme:light;
-        --fallback-b1: #ffffff;
-        --fallback-b2: #e5e6e6;
-    }
-
-    @media(prefers-color-scheme: dark) {
-        :root {
-            color-scheme:dark;
-            --fallback-b1: #3a424a;
-            --fallback-b2: #191e24;
-        }
-    }
-}
-
-/* Fix list Issues */
-@layer base {
-  ul, ol {
-    list-style: revert;
-  }
-  p {
-    margin: .5em;
-  }
-}
 
 .centered-container {
     display: flex;

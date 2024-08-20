@@ -9,7 +9,7 @@ const writeSectionToChat = (title, loadFunction) => {
 
     // Create a wrapper for the section
     const sectionWrapper = document.createElement('div');
-    sectionWrapper.className = 'card bg-base-100 shadow-xl my-4 py-2 relative';
+    sectionWrapper.className = 'card bg-base-100 shadow-lg m-4 py-2 relative';
 
     // Add the title element
     const titleElement = `
