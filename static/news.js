@@ -9,7 +9,7 @@ const writeSectionToChat = (title, loadFunction) => {
 
     // Create a wrapper for the section
     const sectionWrapper = document.createElement('div');
-    sectionWrapper.className = 'section-wrapper my-4';
+    sectionWrapper.className = 'section-wrapper my-4 py-2 rounded-lg bg-base-200 relative';
 
     // Add the title element
     const titleElement = `
@@ -20,28 +20,26 @@ const writeSectionToChat = (title, loadFunction) => {
     `;
     sectionWrapper.innerHTML = titleElement;
 
-    // Create a container for the content
-    const contentContainer = document.createElement('div');
-    contentContainer.className = 'content-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
-
-    // Create a "Load More" button
+    // Create a "Load More" button and position it in the top right corner
     const loadMoreButton = document.createElement('button');
-    loadMoreButton.className = 'btn w-full mt-4';
-    loadMoreButton.textContent = 'Load More';
+    loadMoreButton.className = 'btn absolute top-2 right-2';
+    loadMoreButton.textContent = 'Load';
     loadMoreButton.onclick = () => {
         loadFunction(contentContainer, loadMoreButton);
     };
 
-    sectionWrapper.appendChild(loadMoreButton);
-    sectionWrapper.appendChild(contentContainer);
-    queryResultElement.appendChild(sectionWrapper);
+    // Create a container for the content
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'content-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-6';
+
+    sectionWrapper.appendChild(loadMoreButton); // Append Load More button to the section wrapper
+    sectionWrapper.appendChild(contentContainer); // Append content container
+    queryResultElement.appendChild(sectionWrapper); // Append the section wrapper to the query result element
 
     // Scroll to the bottom of the chatbox
     queryResultElement.scrollTop = queryResultElement.scrollHeight;
 };
 
-
-// Initialize sections with "Load More" buttons
 // Initialize sections with "Load More" buttons
 window.onload = () => {
     writeSectionToChat('Hacker News', loadHackerNewsLinks);
