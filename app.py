@@ -134,6 +134,13 @@ def query_article():
     model = request.json.get(
         "model", "gpt-4o-mini" # default
     )
+    api_key = request.json.get("apiKey")
+    #use the provided API key if it is set, otherwise use the default key
+    if api_key:
+        openai.api_key = api_key
+    else:
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+
     indexModel = IndexModel.VECTOR_STORE
     temperature = 0.0
 
@@ -148,6 +155,7 @@ def query_article():
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
