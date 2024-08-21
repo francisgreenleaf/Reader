@@ -1,27 +1,38 @@
+// Global variables
 let articleTitle = '';
-let topImageUrl = ''
+let topImageUrl = '';
+let defaultModel = 'gpt-4o-mini';
+let apiKey = '';
 
+// List of available themes
+const themes = [
+    'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'synthwave', 
+    'retro', 'halloween', 'garden', 'forest', 'aqua', 
+    'lofi', 'fantasy', 'wireframe', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee', 'winter'
+];
+
+// Function to fetch article
 async function fetchArticle() {
     const url = document.getElementById('urlInput').value;
     const errorElement = document.getElementById('error');
     const contentElement = document.getElementById('content');
-    const hiddenContentElement = document.getElementById('hiddenContent'); // Hidden element for storing content
+    const hiddenContentElement = document.getElementById('hiddenContent');
     const summaryElement = document.getElementById('summary');
     const articleTitleElement = document.getElementById('articleTitle');
     const summaryLoadingElement = document.getElementById('summaryLoading');
     const contentLoadingElement = document.getElementById('contentLoading');
-    const summaryCollapse = document.getElementById('summaryCollapse');
 
     errorElement.textContent = '';
     contentElement.innerHTML = '';
     summaryElement.innerHTML = '';
-    hiddenContentElement.value = ''; // Clear the hidden content field
+    hiddenContentElement.value = '';
     summaryLoadingElement.classList.remove('hidden');
     contentLoadingElement.classList.remove('hidden');
 
     try {
         const response = await axios.post('/fetch', { url: url });
         const article = response.data.content;
+        const summary = response.data.summary;
         articleTitle = article.title;
         topImageUrl = article.top_image_url;
 
@@ -34,14 +45,11 @@ async function fetchArticle() {
             <p>${articleContent}</p>
         `;
 
-        hiddenContentElement.value = article.content; // Store raw content in hidden element
+        hiddenContentElement.value = article.content;
 
         summaryElement.innerHTML = `
-            <p>${article.summary}</p>
+            <p>${summary}</p>
         `;
-
-        // Automatically open the summary collapse
-        summaryCollapse.checked = true;
 
     } catch (error) {
         errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
@@ -51,6 +59,7 @@ async function fetchArticle() {
     }
 }
 
+// Function to generate PDF
 async function generatePDF() {
     const hiddenContentElement = document.getElementById('hiddenContent');
     const content = hiddenContentElement.value.trim();
@@ -74,6 +83,7 @@ async function generatePDF() {
     }
 }
 
+// Function to query article
 async function queryArticle() {
     const query = document.getElementById('queryInput').value;
     const model = document.getElementById('modelSelect').value;
@@ -93,7 +103,7 @@ async function queryArticle() {
     }
 
     try {
-        const response = await axios.post('/query', { content: content, query: query, model: model });
+        const response = await axios.post('/query', { content: content, query: query, model: model, apiKey: apiKey });
         queryResultElement.textContent = response.data.result;
     } catch (error) {
         queryResultElement.textContent = 'Error querying article: ' + (error.response?.data?.error || error.message);
@@ -101,3 +111,91 @@ async function queryArticle() {
         queryLoadingElement.classList.add('hidden');
     }
 }
+
+// Function to open settings modal
+function openSettingsModal() {
+    const modal = document.getElementById('settings_modal');
+    modal.showModal();
+    loadSettings();
+}
+
+// Function to close settings modal
+function closeSettingsModal() {
+    const modal = document.getElementById('settings_modal');
+    modal.close();
+}
+
+// Function to load current settings
+function loadSettings() {
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const modelSelect = document.getElementById('modelSelect');
+    const themeSelect = document.getElementById('themeSelect');
+
+    apiKeyInput.value = apiKey;
+    modelSelect.value = defaultModel;
+
+    themeSelect.innerHTML = themes.map(theme => 
+        `<option value="${theme}"${theme === getCurrentTheme() ? ' selected' : ''}>${theme}</option>`
+    ).join('');
+}
+
+// Function to save API key
+function saveApiKey() {
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    apiKey = apiKeyInput.value;
+    localStorage.setItem('apiKey', apiKey);
+    console.log('API key saved!');
+}
+
+// Function to save model selection
+function saveModelSelection() {
+    const modelSelect = document.getElementById('modelSelect');
+    defaultModel = modelSelect.value;
+    localStorage.setItem('defaultModel', defaultModel);
+    document.getElementById('modelSelect').value = defaultModel;
+}
+
+// Function to save theme selection
+function saveThemeSelection() {
+    const themeSelect = document.getElementById('themeSelect');
+    const selectedTheme = themeSelect.value;
+    localStorage.setItem('theme', selectedTheme);
+    applyTheme(selectedTheme);
+}
+
+// Function to get current theme
+function getCurrentTheme() {
+    return localStorage.getItem('theme') || 'light';
+}
+
+// Function to apply theme
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+}
+
+// Load settings on page load
+window.addEventListener('load', () => {
+    defaultModel = localStorage.getItem('defaultModel') || 'gpt-4o-mini';
+    apiKey = localStorage.getItem('apiKey') || '';
+    
+    document.getElementById('modelSelect').value = defaultModel;
+
+    const savedTheme = getCurrentTheme();
+    applyTheme(savedTheme);
+
+    const themeSelect = document.getElementById('themeSelect');
+    themeSelect.innerHTML = themes.map(theme => 
+        `<option value="${theme}"${theme === savedTheme ? ' selected' : ''}>${theme}</option>`
+    ).join('');
+});
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+    document.getElementById('saveApiKeyButton').addEventListener('click', saveApiKey);
+    document.getElementById('modelSelect').addEventListener('change', saveModelSelection);
+    document.getElementById('themeSelect').addEventListener('change', saveThemeSelection);
+    document.getElementById('loadButton').addEventListener('click', fetchArticle);
+    document.getElementById('generatePdfButton').addEventListener('click', generatePDF);
+    document.getElementById('submitQueryButton').addEventListener('click', queryArticle);
+});
