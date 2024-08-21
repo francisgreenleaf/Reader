@@ -20,11 +20,11 @@
         <div class="flex justify-between items-center mb-8">
             <h1 id="reader" class="text-4xl font-bold">📚 Reader</h1>
             <div class="flex items-center space-x-4">
+                <button id ="settingsBtn" class="btn btn-primary rounded-xl"><i class="fa-solid fa-gear"></i></button>
+                </button>
                 <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
                     <i class="fab fa-github"></i>
                 </a>
-                <button id ="settingsBtn" class="btn btn-primary rounded-xl">⚙️</button>
-                </button>
             </div>
         </div>
         <!-- Main Content -->
@@ -59,7 +59,7 @@
                 </div>
 
                 <!-- Content Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4 collapse-open">
+                <div class="collapse collapse-arrow bg-base-300 mb-4">
                     <input type="checkbox" id="contentCollapse" />
                     <div class="collapse-title text-xl font-medium" id="articleTitle">
                         Article Content
@@ -81,8 +81,9 @@
                     Save as PDF
                 </button>
             </div>
-            <div class="w-full lg:w-2/5 px-4"> <!-- Right Column -->                
-                <label for="queryInput" class="text-sm font-medium">Query:</label>
+            <!-- Right Column -->  
+            <div class="w-full lg:w-2/5 px-4">              
+                <label for="queryInput" class="text-sm font-medium mb-2">Query:</label>
                 <div class="flex items-center space-x-2 mb-4">
                     <input type="text" id="queryInput" placeholder="Ask a question!"
                         class="flex-grow input input-bordered input-secondary w-full">
@@ -90,7 +91,7 @@
                         Submit <i class="fa-solid fa-paper-plane ml-2"></i>
                     </button>
                 </div>
-                
+        
                 <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
                     <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -98,7 +99,11 @@
                     </svg>
                     Processing...
                 </div>
-                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300"></div>
+                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300 mb-4"></div>
+                <!-- New placeholder button here -->
+                <div class="flex justify-end">
+                    <button onclick="exasearch()" class="btn btn-secondary">Find Similar</button> <!-- use exasearch to find similar content-->
+                    </div>   
             </div>
         </div>
     </div>

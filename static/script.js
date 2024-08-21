@@ -8,7 +8,7 @@ let apiKey = '';
 const themes = [
     'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'synthwave', 
     'retro', 'halloween', 'garden', 'forest', 'aqua', 
-    'lofi', 'fantasy', 'wireframe', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee', 'winter'
+    'lofi', 'fantasy', 'wireframe', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee', 'winter',
 ];
 
 // Function to fetch article

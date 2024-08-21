@@ -21,6 +21,7 @@ from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
 from utils.tokenguard import tokenguard
+from openai import OpenAI
 
 handler = colorlog.StreamHandler()
 
@@ -38,6 +39,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 if openai.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#Raise an error if the API key is not set
+if client.api_key is None:
+    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
+
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
@@ -50,7 +57,7 @@ class FormattedContent:
 
 def generate_summary(content):
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
@@ -58,7 +65,7 @@ def generate_summary(content):
             ],
             max_tokens=500
         )
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Error generating summary: {e}")
         return "Unable to generate summary."
