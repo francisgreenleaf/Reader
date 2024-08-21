@@ -21,7 +21,6 @@ async function fetchArticle() {
     const articleTitleElement = document.getElementById('articleTitle');
     const summaryLoadingElement = document.getElementById('summaryLoading');
     const contentLoadingElement = document.getElementById('contentLoading');
-    const summaryCollapse = document.getElementById('summaryCollapse');
 
     errorElement.textContent = '';
     contentElement.innerHTML = '';
@@ -33,6 +32,7 @@ async function fetchArticle() {
     try {
         const response = await axios.post('/fetch', { url: url });
         const article = response.data.content;
+        const summary = response.data.summary;
         articleTitle = article.title;
         topImageUrl = article.top_image_url;
 
@@ -48,10 +48,8 @@ async function fetchArticle() {
         hiddenContentElement.value = article.content;
 
         summaryElement.innerHTML = `
-            <p>${article.summary}</p>
+            <p>${summary}</p>
         `;
-
-        summaryCollapse.checked = true;
 
     } catch (error) {
         errorElement.textContent = 'Error fetching article: ' + (error.response?.data?.error || error.message);
@@ -146,6 +144,7 @@ function saveApiKey() {
     const apiKeyInput = document.getElementById('apiKeyInput');
     apiKey = apiKeyInput.value;
     localStorage.setItem('apiKey', apiKey);
+    console.log('API key saved!');
 }
 
 // Function to save model selection
