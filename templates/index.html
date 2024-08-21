@@ -59,7 +59,7 @@
                 </div>
 
                 <!-- Content Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4 collapse-open">
+                <div class="collapse collapse-arrow bg-base-300 mb-4">
                     <input type="checkbox" id="contentCollapse" />
                     <div class="collapse-title text-xl font-medium" id="articleTitle">
                         Article Content
@@ -83,7 +83,7 @@
             </div>
             <!-- Right Column -->  
             <div class="w-full lg:w-2/5 px-4">              
-                <label for="queryInput" class="text-sm font-medium">Query:</label>
+                <label for="queryInput" class="text-sm font-medium mb-2">Query:</label>
                 <div class="flex items-center space-x-2 mb-4">
                     <input type="text" id="queryInput" placeholder="Ask a question!"
                         class="flex-grow input input-bordered input-secondary w-full">
@@ -100,11 +100,10 @@
                     Processing...
                 </div>
                 <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300 mb-4"></div>
-                <!-- New placeholder button -->
+                <!-- New placeholder button here -->
                 <div class="flex justify-end">
-                <button onclick="exasearch()" class="btn btn-secondary">Find Similar</button> <!-- use exasearch to find similar content-->
-                </div>
-                    
+                    <button onclick="exasearch()" class="btn btn-secondary">Find Similar</button> <!-- use exasearch to find similar content-->
+                    </div>   
             </div>
         </div>
     </div>
