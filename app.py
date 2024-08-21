@@ -160,10 +160,11 @@ def query_article():
     if api_key:
         openai.api_key = api_key
     else:
-        openai.api_key = os.getenv("OPENAI_API_KEY")#this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        #this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
 
     indexModel = IndexModel.VECTOR_STORE
-    temperature = 0.0
+    temperature = 0.2
 
     try:
         # Create RAG index
