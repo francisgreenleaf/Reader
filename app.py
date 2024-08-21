@@ -54,7 +54,7 @@ def generate_summary(content):
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
-                {"role": "user", "content": f"Please summarize the following article in a concise paragraph:\n\n{content}"}
+                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\n{content}"}
             ],
             max_tokens=500
         )
