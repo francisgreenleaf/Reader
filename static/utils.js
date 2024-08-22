@@ -22,3 +22,33 @@ document.getElementById('saveApiKeyButton').addEventListener('click', () => {
 function getApiKey() {
     return localStorage.getItem('openai_api_key') || null;
 }
+
+// Function to save font selection
+function saveFontSelection() {
+    const fontSelect = document.getElementById('fontSelect');
+    const selectedFont = fontSelect.value;
+    localStorage.setItem('chatFont', selectedFont);
+    applyChatFont(selectedFont);
+}
+
+// Function to apply font to chat bubbles
+function applyChatFont(font) {
+    const chatBubbles = document.querySelectorAll('.chat-bubble');
+    chatBubbles.forEach(bubble => {
+        bubble.style.fontFamily = font;
+    });
+}
+
+// Load settings on page load
+window.addEventListener('load', () => {
+    // Existing settings load logic...
+
+    const savedFont = localStorage.getItem('chatFont') || 'sans-serif';
+    applyChatFont(savedFont);
+
+    const fontSelect = document.getElementById('fontSelect');
+    fontSelect.value = savedFont;
+});
+
+// Add event listener for font selection
+document.getElementById('fontSelect').addEventListener('change', saveFontSelection);
