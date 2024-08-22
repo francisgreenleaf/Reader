@@ -149,7 +149,7 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
-#this is where tokenguard should be initialized 
+#this is where tokenguard should be initialized - currently it is not being used
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
