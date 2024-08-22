@@ -39,6 +39,7 @@ function openArticleModal() {
     modal.showModal();
 }
 
+
 /**=====================
  * ==== FONT SELECT ====
  * =====================
