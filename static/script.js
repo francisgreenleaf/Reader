@@ -41,7 +41,7 @@ async function fetchArticle() {
         const articleContent = article.content.replace(/\n/g, '<br>');
         contentElement.innerHTML = `
             <h3 class="text-xl font-semibold mb-4">Content:</h3>
-            <img src=${topImageUrl}>
+            <img id="top-image" src=${topImageUrl}>
             <p>${articleContent}</p>
         `;
 
@@ -63,7 +63,7 @@ async function fetchArticle() {
 async function generatePDF() {
     const hiddenContentElement = document.getElementById('hiddenContent');
     const content = hiddenContentElement.value.trim();
-    const images = [];
+    const top_image_url = document.getElementById('top-image').src;
 
     if (!content) {
         console.error('Content is empty. Cannot generate PDF.');
@@ -71,7 +71,7 @@ async function generatePDF() {
     }
 
     try {
-        const response = await axios.post('/generate_pdf', { title: articleTitle, content: content, images: images }, { responseType: 'blob' });
+        const response = await axios.post('/generate_pdf', { title: articleTitle, content: content, imageUrl: top_image_url }, { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
