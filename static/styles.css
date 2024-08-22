@@ -1,3 +1,11 @@
+:root {
+    --read-font-family: Arial; /* Default font */
+}
+
+.chat-bubble {
+    font-family: var(--read-font-family);
+}
+
 
 .centered-container {
     display: flex;

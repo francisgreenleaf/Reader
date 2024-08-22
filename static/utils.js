@@ -23,6 +23,10 @@ function getApiKey() {
     return localStorage.getItem('openai_api_key') || null;
 }
 
+/**=====================
+ * ==== FONT SELECT ====
+ * =====================
+ */
 // Function to save font selection
 function saveFontSelection() {
     const fontSelect = document.getElementById('fontSelect');
@@ -33,17 +37,15 @@ function saveFontSelection() {
 
 // Function to apply font to chat bubbles
 function applyChatFont(font) {
-    const chatBubbles = document.querySelectorAll('.chat-bubble');
-    chatBubbles.forEach(bubble => {
-        bubble.style.fontFamily = font;
-    });
+    const chatStyle = document.documentElement.style;
+    chatStyle.setProperty('--read-font-family', font);
 }
 
 // Load settings on page load
 window.addEventListener('load', () => {
     // Existing settings load logic...
 
-    const savedFont = localStorage.getItem('chatFont') || 'sans-serif';
+    const savedFont = localStorage.getItem('chatFont') || 'Arial';
     applyChatFont(savedFont);
 
     const fontSelect = document.getElementById('fontSelect');
