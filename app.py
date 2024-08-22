@@ -61,10 +61,10 @@ class FormattedContent:
 def generate_summary(content):
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini", # TODO: add model from Front
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
-                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\n{content}"}
+                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\"\"\"{content}\"\"\""}
             ],
             max_tokens=500
         )
