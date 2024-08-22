@@ -38,13 +38,14 @@ app = Flask(__name__)
 
 # Initialize OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-#Raise an error if the API key is not set
+# Raise an error if the API key is not set
+# TODO: Remove and test at the Query ?
 if openai.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-#Raise an error if the API key is not set
+# Raise an error if the API key is not set
 if client.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
@@ -59,6 +60,7 @@ class FormattedContent:
     top_image_url: str
 
 def generate_summary(content):
+    # TODO: add OpenAI API Key as ARG
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini", # TODO: add model from Front
@@ -77,7 +79,7 @@ def generate_summary(content):
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
 
-    #Configure newspaper
+    # Configure newspaper
     config = Config()
     config.fetch_images = True
     config.memoize_articles = False
@@ -153,19 +155,20 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
-#this is where tokenguard should be initialized - currently it is not being used
+# this is where tokenguard should be initialized - currently it is not being used
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
+    print(f"QUERY:\n{query}")
     model = request.json.get(
         "model", "gpt-4o-mini" # default
     )
     api_key = request.json.get("apiKey")
-    #use the provided API key if it is set, otherwise use the default key
+    # use the provided API key if it is set, otherwise use the default key
     if api_key:
         openai.api_key = api_key
     else:
-        openai.api_key = os.getenv("OPENAI_API_KEY")#this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
+        openai.api_key = os.getenv("OPENAI_API_KEY")# this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
 
     indexModel = IndexModel.VECTOR_STORE
     temperature = 0.0
@@ -176,7 +179,7 @@ def query_article():
         query_engine = index.as_query_engine()
         # Use RAG to get relevant content
         response = query_engine.query(query)
-        relevant_content = str(response)
+        relevant_content = str(response) # TODO: removed? Never used.
 
         return jsonify({"result": str(response)})
     except Exception as e:
