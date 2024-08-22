@@ -22,6 +22,7 @@ from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
 from utils.tokenguard import tokenguard
+from openai import OpenAI
 
 handler = colorlog.StreamHandler()
 
@@ -41,6 +42,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 if openai.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#Raise an error if the API key is not set
+if client.api_key is None:
+    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
+
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
@@ -48,10 +55,23 @@ cache = Cache(app)
 @dataclass
 class FormattedContent:
     title: str
-    summary: str
     content: str
     top_image_url: str
 
+def generate_summary(content):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
+                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\n{content}"}
+            ],
+            max_tokens=500
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"Error generating summary: {e}")
+        return "Unable to generate summary."
 
 @cache.memoize(timeout=300)  # cache for 5 minutes
 def fetch_and_format_content(url):
@@ -67,7 +87,6 @@ def fetch_and_format_content(url):
     try:
         article.download()
         article.parse()
-        article.nlp()
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 403:
@@ -81,12 +100,11 @@ def fetch_and_format_content(url):
         raise ValueError(f"An unexpected error occurred while fetching the article from {url}: {str(e)}")
 
     title = unescape(article.title)
-    summary = unescape(article.summary)
     content = unescape(article.text)
     top_image_url = article.top_image if (imageUtils.is_image_displayed(article.top_image, article.html)) else ''
 
     return FormattedContent(
-        title=title, summary=summary, content=content, top_image_url=top_image_url
+        title=title, content=content, top_image_url=top_image_url
     )
 
 
@@ -107,7 +125,10 @@ def fetch_article():
         content = fetch_and_format_content(url)
         if not content.title or not content.content:
             raise ValueError("Failed to extract meaningful content from the URL")
-        return jsonify({"content": content})
+        
+        summary = generate_summary(content.content)
+        
+        return jsonify({"content": content.__dict__, "summary": summary})
     except Exception as e:
         error_message = f"Error fetching article: {str(e)}"
         logger.error(error_message, exc_info=True)
@@ -119,7 +140,8 @@ def generate_pdf_route():
     data = request.json
     title = data.get("title", "article")
     content = data.get("content", "")
-    pdf = pdfUtils.generate_pdf(content)
+    top_image_url = data.get("imageUrl", "")
+    pdf = pdfUtils.generate_pdf(content, top_image_url)
     pdf.seek(0)
     sanitized_title = "".join(c if c.isalnum() else "_" for c in title)
     return send_file(
@@ -131,12 +153,20 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
+#this is where tokenguard should be initialized - currently it is not being used
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
     model = request.json.get(
         "model", "gpt-4o-mini" # default
     )
+    api_key = request.json.get("apiKey")
+    #use the provided API key if it is set, otherwise use the default key
+    if api_key:
+        openai.api_key = api_key
+    else:
+        openai.api_key = os.getenv("OPENAI_API_KEY")#this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
+
     indexModel = IndexModel.VECTOR_STORE
     temperature = 0.0
 
@@ -151,6 +181,7 @@ def query_article():
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
