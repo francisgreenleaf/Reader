@@ -137,7 +137,8 @@ def generate_pdf_route():
     data = request.json
     title = data.get("title", "article")
     content = data.get("content", "")
-    pdf = pdfUtils.generate_pdf(content)
+    top_image_url = data.get("imageUrl", "")
+    pdf = pdfUtils.generate_pdf(content, top_image_url)
     pdf.seek(0)
     sanitized_title = "".join(c if c.isalnum() else "_" for c in title)
     return send_file(
