@@ -13,7 +13,7 @@ const writeToChat = (isAI, message, color="") => {
     
     // Create the chat bubble element
     const chatBubble = document.createElement('div');
-    chatBubble.className = `chat-bubble ${color === "" ? "" : "chat-bubble-" + color}`;
+    chatBubble.className = `chat-bubble ${color === "" ? "" : "font_reader chat-bubble-" + color}`;
     chatBubble.innerHTML = converter.makeHtml(message);
 
     // Create the chat container element
