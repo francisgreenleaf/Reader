@@ -23,6 +23,22 @@ function getApiKey() {
     return localStorage.getItem('openai_api_key') || null;
 }
 
+// Function to open article modal
+function openArticleModal() {
+    const modal = document.getElementById('article_modal');
+    const modalContent = document.getElementById('modalContent');
+    const hiddenContentElement = document.getElementById('hiddenContent');
+    const content = hiddenContentElement.value.trim().replace(/\n/g, '<br>');
+
+    if (!content) {
+        modalContent.innerHTML = '<p>No content available. Try loading a URL.</p>';
+    } else {
+        modalContent.innerHTML = content;
+    }
+
+    modal.showModal();
+}
+
 /**=====================
  * ==== FONT SELECT ====
  * =====================

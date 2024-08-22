@@ -1,4 +1,5 @@
 import os
+import nltk
 from dataclasses import dataclass
 from html import unescape
 import colorlog
@@ -23,6 +24,8 @@ from utils.index import indexUtils
 from utils.tokenguard import tokenguard
 
 handler = colorlog.StreamHandler()
+
+nltk.download('punkt')
 
 logger = colorlog.getLogger(__name__)
 logger.addHandler(handler)
