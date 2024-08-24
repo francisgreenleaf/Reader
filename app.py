@@ -12,8 +12,10 @@ from flask import (
     jsonify,
     send_file,
     send_from_directory,
+    session,
 )
 from flask_caching import Cache
+from flask_session import Session  # Add this import for session management
 from newspaper import Article, ArticleException, Config
 
 from utils.constants import IndexModel
@@ -34,13 +36,17 @@ app = Flask(__name__)
 
 # Initialize OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-#Raise an error if the API key is not set
+# Raise an error if the API key is not set
 if openai.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
+
+# Configure session for Flask app
+app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on the file system
+Session(app)  # Initialize the session extension
 
 @dataclass
 class FormattedContent:
@@ -54,7 +60,7 @@ class FormattedContent:
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
 
-    #Configure newspaper
+    # Configure newspaper
     config = Config()
     config.fetch_images = True
     config.memoize_articles = False
@@ -128,27 +134,54 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
-#this is where tokenguard should be initialized 
+# This is where tokenguard should be initialized
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
-    model = request.json.get(
-        "model", "gpt-4o-mini" # default
-    )
+    model = request.json.get("model", "gpt-4o-mini")  # default
     indexModel = IndexModel.VECTOR_STORE
     temperature = 0.0
 
     try:
-        # Create RAG index
-        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
-        query_engine = index.as_query_engine()
+        # Initialize or retrieve the RAG index from session
+        if 'index_abc' not in session:
+            # Create the RAG index
+            print("Initialize a session index")
+            index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
+            session['index_abc'] = index
+            session['chat_history'] = []
+        else:
+            print("Reuse a session index")
+            index = session['index_abc']
+
+        # Create the chat engine
+        query_engine = index.as_chat_engine(chat_mode='openai', verbose=True)
+        
+        # Append previous chat history if any
+        for msg in session['chat_history']:
+            query_engine.chat_history.append(msg)
+        print("History: ", query_engine.chat_history)
+        ## Need to discuss with team!!
+        query = "History: " + str(query_engine.chat_history) + '\n\n' + query
+        print("Query: ", query)
+
         # Use RAG to get relevant content
-        response = query_engine.query(query)
-        relevant_content = str(response)
+        suffix = "\n\nPlease make sure the output is well formatted. For example, add bold on numbers or bullet points if necessary."
+        response = query_engine.query(query + suffix)
+        session['chat_history'].append({"query": query, "response": str(response)})
 
         return jsonify({"result": str(response)})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+
+@app.route("/clear_history", methods=["POST"])
+def clear_history():
+    session.pop('index', None)
+    session.pop('chat_history', None)
+    return jsonify({"status": "Chat history cleared"})
+
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
