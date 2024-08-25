@@ -173,9 +173,15 @@ def query_article():
     indexModel = IndexModel.VECTOR_STORE
     temperature = 0.0
 
+    prompt = f"""
+        You need to write to answer into an MarkDown format.
+        You can also show/highlight part of the article using MD link with an hashtag like'#highlight:Example of test into the article' plz do not use '-' use '%20'.
+        This is the content: <content>{content}</content>
+        """
+
     try:
         # Create RAG index
-        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
+        index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
         query_engine = index.as_query_engine()
         # Use RAG to get relevant content
         response = query_engine.query(query)
