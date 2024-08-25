@@ -25,18 +25,7 @@ function getApiKey() {
 
 // Function to open article modal
 function openArticleModal() {
-    const modal = document.getElementById('article_modal');
-    const modalContent = document.getElementById('modalContent');
-    const hiddenContentElement = document.getElementById('hiddenContent');
-    const content = hiddenContentElement.value.trim().replace(/\n/g, '<br>');
-
-    if (!content) {
-        modalContent.innerHTML = '<p>No content available. Try loading a URL.</p>';
-    } else {
-        modalContent.innerHTML = content;
-    }
-
-    modal.showModal();
+    openArticleModalWithHighlight('');
 }
 
 
@@ -71,3 +60,31 @@ window.addEventListener('load', () => {
 
 // Add event listener for font selection
 document.getElementById('fontSelect').addEventListener('change', saveFontSelection);
+
+
+function openArticleModalWithHighlight(textToHighlight) {
+    const modal = document.getElementById('article_modal');
+    const modalContent = document.getElementById('modalContent');
+    const hiddenContentElement = document.getElementById('hiddenContent');
+    let content = hiddenContentElement.value.trim();
+
+    if (!content) {
+        modalContent.innerHTML = '<p>No content available. Try loading a URL.</p>';
+    } else {
+        // Escape special characters in the text to highlight for use in a regex
+        if (textToHighlight) {
+            const escapedText = textToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedText})`, 'gi');
+            content = content.replace(regex, '<mark>$1</mark>');
+        }
+        modalContent.innerHTML = content.replace(/\n/g, '<br>');
+    }
+
+    modal.showModal();
+
+    // Scroll to the first highlighted text
+    const firstHighlight = modalContent.querySelector('mark');
+    if (firstHighlight) {
+        firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}

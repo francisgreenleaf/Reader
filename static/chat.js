@@ -11,10 +11,25 @@ let topImageUrl = '';
 const writeToChat = (isAI, message, color="") => {
     const queryResultElement = document.getElementById('queryResult');
     
+    // Convert "#Some Text" to a special link
+    message = message.replace(/#(.*?)#/g, (match, p1) => {
+        return `[${p1}](#highlight:${encodeURIComponent(p1)})`;
+    });
+
     // Create the chat bubble element
     const chatBubble = document.createElement('div');
     chatBubble.className = `chat-bubble ${color === "" ? "" : "font_reader chat-bubble-" + color}`;
     chatBubble.innerHTML = converter.makeHtml(message);
+
+    // Add click event listeners to the special links
+    chatBubble.querySelectorAll('a[href^="#highlight:"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const textToHighlight = decodeURIComponent(e.target.getAttribute('href').split(':')[1]);
+            openArticleModalWithHighlight(textToHighlight);
+            console.log(">>>>>", textToHighlight);
+        });
+    });
 
     // Create the chat container element
     const chatContainer = document.createElement('div');
