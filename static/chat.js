@@ -25,9 +25,9 @@ const writeToChat = (isAI, message, color="") => {
     chatBubble.querySelectorAll('a[href^="#highlight:"]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const textToHighlight = decodeURIComponent(e.target.getAttribute('href').split(':')[1]);
+            const fullLink = e.target.getAttribute('href').replace("%3A", ":")
+            const textToHighlight = decodeURIComponent(fullLink.split(':')[1]);
             openArticleModalWithHighlight(textToHighlight);
-            console.log(">>>>>", textToHighlight);
         });
     });
 
