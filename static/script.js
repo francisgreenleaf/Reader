@@ -39,9 +39,12 @@ async function fetchArticle() {
         articleTitleElement.childNodes[0].textContent = article.title;
 
         const articleContent = article.content.replace(/\n/g, '<br>');
-        contentElement.innerHTML = `
+        contentElement.innerHTML = topImageUrl !== '' ? `
             <h3 class="text-xl font-semibold mb-4">Content:</h3>
             <img id="top-image" src=${topImageUrl}>
+            <p>${articleContent}</p>
+        `: `
+            <h3 class="text-xl font-semibold mb-4">Content:</h3>
             <p>${articleContent}</p>
         `;
 
@@ -63,7 +66,8 @@ async function fetchArticle() {
 async function generatePDF() {
     const hiddenContentElement = document.getElementById('hiddenContent');
     const content = hiddenContentElement.value.trim();
-    const top_image_url = document.getElementById('top-image').src;
+    const top_image_url = document.getElementById('top-image') ?
+        document.getElementById('top-image').src : '';
 
     if (!content) {
         console.error('Content is empty. Cannot generate PDF.');
