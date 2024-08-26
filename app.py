@@ -145,15 +145,15 @@ def generate_pdf_route():
 @app.route("/query", methods=["POST"])
 #this is where tokenguard should be initialized 
 def query_article():
-    content = request.json["content"]
-    query = request.json["query"]
+    # the user must input an API key
     model = request.json.get("model")
     api_key = request.json.get("apiKey")
-    
-    # the user must input an API key
     if not (model and api_key):
         return jsonify({"error": "no API key inputted"}), 400
-    elif model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
+    
+    content = request.json["content"]
+    query = request.json["query"]
+    if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
         openai.api_key = api_key
         indexModel = IndexModel.VECTOR_STORE
         temperature = 0.0
