@@ -4,6 +4,7 @@ from html import unescape
 import colorlog
 import openai
 import requests
+from llamaapi import LlamaAPI
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -50,7 +51,7 @@ class FormattedContent:
 
 def generate_summary(content):
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
@@ -58,7 +59,7 @@ def generate_summary(content):
             ],
             max_tokens=500
         )
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Error generating summary: {e}")
         return "Unable to generate summary."
@@ -146,30 +147,36 @@ def generate_pdf_route():
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
-    model = request.json.get(
-        "model", "gpt-4o-mini" # default
-    )
+    model = request.json.get("model")
     api_key = request.json.get("apiKey")
-    #use the provided API key if it is set, otherwise use the default key
-    if api_key:
+    
+    # the user must input an API key
+    if not (model and api_key):
+        return jsonify({"error": "no API key inputted"}), 400
+    elif model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
         openai.api_key = api_key
+        indexModel = IndexModel.VECTOR_STORE
+        temperature = 0.0
+
+        try:
+            # Create RAG index
+            index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
+            query_engine = index.as_query_engine()
+            # Use RAG to get relevant content
+            response = query_engine.query(query)
+
+            return jsonify({"result": str(response)})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
     else:
-        openai.api_key = os.getenv("OPENAI_API_KEY")#this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
-
-    indexModel = IndexModel.VECTOR_STORE
-    temperature = 0.0
-
-    try:
-        # Create RAG index
-        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
-        query_engine = index.as_query_engine()
-        # Use RAG to get relevant content
-        response = query_engine.query(query)
-        relevant_content = str(response)
-
-        return jsonify({"result": str(response)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        llama = LlamaAPI(api_key)
+        try:
+            api_request_json = indexUtils.create_api_request(content, model, query)(content, model, query)
+            # Make your request and handle the response
+            response = llama.run(api_request_json)
+            return jsonify({"result": response.json()["choices"][0]["message"]["content"]})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400      
     
 
 if __name__ == "__main__":
