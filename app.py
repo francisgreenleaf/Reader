@@ -103,10 +103,11 @@ def fetch_and_format_content(url):
 
     title = unescape(article.title)
     content = unescape(article.text)
+    # TODO: Fix the call 'imageUtils.is_image_displayed' not geting the image url
     top_image_url = article.top_image if (imageUtils.is_image_displayed(article.top_image, article.html)) else ''
 
     return FormattedContent(
-        title=title, content=content, top_image_url=top_image_url
+        title=title, content=content, top_image_url=article.top_image
     )
 
 
@@ -159,7 +160,6 @@ def generate_pdf_route():
 def query_article():
     content = request.json["content"]
     query = request.json["query"]
-    print(f"QUERY:\n{query}")
     model = request.json.get(
         "model", "gpt-4o-mini" # default
     )
@@ -185,7 +185,6 @@ def query_article():
         query_engine = index.as_query_engine()
         # Use RAG to get relevant content
         response = query_engine.query(query)
-        relevant_content = str(response) # TODO: removed? Never used.
 
         return jsonify({"result": str(response)})
     except Exception as e:

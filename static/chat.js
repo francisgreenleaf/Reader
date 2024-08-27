@@ -66,8 +66,12 @@ const fetchArticle = async () => {
         articleTitle = article.title;
         topImageUrl = article.top_image_url;
 
-        writeToChat(true, `##${articleTitle}\n\n${response.data.summary}`, 'primary');
-        hiddenContentElement.value = article.content; // Store raw content in hidden element
+        writeToChat(true, `${topImageUrl !== '' ? `![Header](${topImageUrl})` : ''}\n\n##${articleTitle}\n\n${response.data.summary}`, 'primary');
+        hiddenContentElement.value = `
+            <img src=${topImageUrl}>
+            <h1><a href="${url}">${articleTitle}<a></h1>
+            ${article.content}
+        `; // Store raw content in hidden element
 
     } catch (error) {
         writeToChat(true, `Error fetching article.`, 'error');

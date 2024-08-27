@@ -66,5 +66,4 @@ window.onload = () => {
     writeSectionToChat('Hacker News', loadHackerNewsLinks);
     writeSectionToChat('Arxiv Papers', loadArxivPapers);
     writeSectionToChat('GDELT News', loadGDELTNews);
-    // writeSectionToChat('OSF Preprints', loadOSFPreprints);
 };
