@@ -68,8 +68,7 @@ const fetchArticle = async () => {
 
         writeToChat(true, `${topImageUrl !== '' ? `![Header](${topImageUrl})` : ''}\n\n##${articleTitle}\n\n${response.data.summary}`, 'primary');
         hiddenContentElement.value = `
-            <img src=${topImageUrl}>
-            <h1><a href="${url}">${articleTitle}<a></h1>
+            <img src=${topImageUrl} ><h1><a href="${url}" target="_blank">${articleTitle}</a></h1>
             ${article.content}
         `; // Store raw content in hidden element
 
