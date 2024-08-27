@@ -175,7 +175,9 @@ def query_article():
 
     prompt = f"""
         You need to write to answer into an MarkDown format.
-        You can also show/highlight part of the article using MD link with an hashtag like'#highlight:Example of test into the article' plz do not use '-' use '%20'.
+        You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
+        Plz do not use '-' for space use '%20' instead, and only used referent to the content as the exact content words.
+        Do not hesitate to link and highlight each part of the content who help you giving your answer.
         This is the content: <content>{content}</content>
         """
 

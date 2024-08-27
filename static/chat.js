@@ -13,7 +13,7 @@ const writeToChat = (isAI, message, color="") => {
     
     // Convert "#Some Text" to a special link
     message = message.replace(/#(.*?)#/g, (match, p1) => {
-        return `[${p1}](#highlight:${encodeURIComponent(p1)})`;
+        return `[${p1}](#highlight=${encodeURIComponent(p1)})`;
     });
 
     // Create the chat bubble element
@@ -22,11 +22,11 @@ const writeToChat = (isAI, message, color="") => {
     chatBubble.innerHTML = converter.makeHtml(message);
 
     // Add click event listeners to the special links
-    chatBubble.querySelectorAll('a[href^="#highlight:"]').forEach(link => {
+    chatBubble.querySelectorAll('a[href^="#highlight="]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const fullLink = e.target.getAttribute('href').replace("%3A", ":")
-            const textToHighlight = decodeURIComponent(fullLink.split(':')[1]);
+            const textToHighlight = decodeURIComponent(fullLink.split('=')[1]);
             openArticleModalWithHighlight(textToHighlight);
         });
     });
