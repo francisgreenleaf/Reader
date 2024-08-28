@@ -25,6 +25,13 @@ from utils.index import indexUtils
 from utils.tokenguard import tokenguard
 from openai import OpenAI
 
+MODELS = {
+    "llama-3.1": "llama3.1-70b",
+    "gemma-2": "gemma2-27b",
+    "mistral-large": "mixtral-8x7b-instruct",
+    "qwen-2": "Qwen2-72B",
+}
+
 handler = colorlog.StreamHandler()
 
 nltk.download('punkt')
@@ -162,12 +169,11 @@ def query_article():
     # the user must input an API key
     model = request.json.get("model")
     api_key = request.json.get("apiKey")
-    if not (model and api_key):
-        return jsonify({"error": "no API key inputted"}), 400
     
     content = request.json["content"]
     query = request.json["query"]
     if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
+        api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
         openai.api_key = api_key
         indexModel = IndexModel.VECTOR_STORE
         temperature = 0.0
@@ -191,9 +197,16 @@ def query_article():
         except Exception as e:
             return jsonify({"error": str(e)}), 400
     else:
+        api_key = api_key if api_key else os.getenv("LLAMA_API_KEY")
         llama = LlamaAPI(api_key)
         try:
-            api_request_json = indexUtils.create_api_request(content, model, query)(content, model, query)
+            api_request_json = {
+                "model": MODELS[model],
+                "messages": [
+                    {"role": "system", "content": query},
+                    {"role": "user", "content": content},
+                ]
+            }
             # Make your request and handle the response
             response = llama.run(api_request_json)
             return jsonify({"result": response.json()["choices"][0]["message"]["content"]})
