@@ -1,31 +1,48 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<div class="main-content">
+  <!-- Hidden element to store raw article content -->
+  <input type="hidden" id="hiddenContent" value="" />
 
-{% block content %}
-    <div class="main-content">
-        <!-- Hidden element to store raw article content -->
-        <input type="hidden" id="hiddenContent" value="">
-
-        <!-- Chatbox Section -->
-        <div id="queryResult" class="prose overflow-y-auto h-96 m-auto mx-auto !max-w-none pt-16 pb-8 w-full lg:px-32 xl:px-64 px-4">
-            <!-- Loading Spinner -->
-            <div id="queryLoading" class="hidden flex justify-center items-center my-4">
-                <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-                Loading...
-            </div>
-        </div>
-
-        <!-- Submit Section at the bottom -->
-        <div class="submit-section p-0 pb-4 w-full lg:px-32 xl:px-64">
-            <div class="flex items-center space-x-2">
-                <input type="text" id="queryInput" placeholder="Ask a question!"
-                    class="flex-grow input input-bordered input-secondary w-full" onkeydown="handleKeyDown(event, queryArticle)">
-                <button onclick="queryArticle()" class="btn">
-                    Submit <i class="fa-solid fa-paper-plane ml-2"></i>
-                </button>
-            </div>
-        </div>
+  <!-- Chatbox Section -->
+  <div
+    id="queryResult"
+    class="prose overflow-y-auto h-96 m-auto mx-auto !max-w-none pt-16 pb-8 w-full lg:px-32 xl:px-64 px-4"
+  >
+    <!-- Loading Spinner -->
+    <div id="queryLoading" class="hidden flex justify-center items-center my-4">
+      <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        ></path>
+      </svg>
+      Loading...
     </div>
+  </div>
+
+  <!-- Submit Section at the bottom -->
+  <div class="submit-section p-0 pb-4 w-full lg:px-32 xl:px-64">
+    <div class="flex items-center space-x-2">
+      <input
+        type="text"
+        id="queryInput"
+        placeholder="Ask a question!"
+        class="flex-grow input input-bordered input-secondary w-full"
+        onkeydown="handleKeyDown(event, queryArticle)"
+      />
+      <button onclick="queryArticle()" class="btn">
+        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}

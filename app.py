@@ -5,6 +5,7 @@ from html import unescape
 import colorlog
 import openai
 import requests
+from llamaapi import LlamaAPI
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -158,39 +159,46 @@ def generate_pdf_route():
 @app.route("/query", methods=["POST"])
 # this is where tokenguard should be initialized - currently it is not being used
 def query_article():
+    # the user must input an API key
+    model = request.json.get("model")
+    api_key = request.json.get("apiKey")
+    if not (model and api_key):
+        return jsonify({"error": "no API key inputted"}), 400
+    
     content = request.json["content"]
     query = request.json["query"]
-    model = request.json.get(
-        "model", "gpt-4o-mini" # default
-    )
-    api_key = request.json.get("apiKey")
-    # use the provided API key if it is set, otherwise use the default key
-    if api_key:
+    if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
         openai.api_key = api_key
+        indexModel = IndexModel.VECTOR_STORE
+        temperature = 0.0
+
+        prompt = f"""
+            You need to write to answer into an MarkDown format.
+            You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
+            Plz do not use '-' for space use '%20' instead, and only used referent to the content as the exact content words.
+            Do not hesitate to link and highlight each part of the content who help you giving your answer.
+            This is the content: <content>{content}</content>
+            """
+
+        try:
+            # Create RAG index
+            index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
+            query_engine = index.as_query_engine()
+            # Use RAG to get relevant content
+            response = query_engine.query(query)
+
+            return jsonify({"result": str(response)})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
     else:
-        openai.api_key = os.getenv("OPENAI_API_KEY")# this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
-
-    indexModel = IndexModel.VECTOR_STORE
-    temperature = 0.0
-
-    prompt = f"""
-        You need to write to answer into an MarkDown format.
-        You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-        Plz do not use '-' for space use '%20' instead, and only used referent to the content as the exact content words.
-        Do not hesitate to link and highlight each part of the content who help you giving your answer.
-        This is the content: <content>{content}</content>
-        """
-
-    try:
-        # Create RAG index
-        index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
-        query_engine = index.as_query_engine()
-        # Use RAG to get relevant content
-        response = query_engine.query(query)
-
-        return jsonify({"result": str(response)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        llama = LlamaAPI(api_key)
+        try:
+            api_request_json = indexUtils.create_api_request(content, model, query)(content, model, query)
+            # Make your request and handle the response
+            response = llama.run(api_request_json)
+            return jsonify({"result": response.json()["choices"][0]["message"]["content"]})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400      
     
 
 if __name__ == "__main__":
