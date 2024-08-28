@@ -1,9 +1,11 @@
 import os
+import nltk
 from dataclasses import dataclass
 from html import unescape
 import colorlog
 import openai
 import requests
+from llamaapi import LlamaAPI
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -23,7 +25,16 @@ from utils.index import indexUtils
 from utils.tokenguard import tokenguard
 from openai import OpenAI
 
+MODELS = {
+    "llama-3.1": "llama3.1-70b",
+    "gemma-2": "gemma2-27b",
+    "mistral-large": "mixtral-8x7b-instruct",
+    "qwen-2": "Qwen2-72B",
+}
+
 handler = colorlog.StreamHandler()
+
+nltk.download('punkt')
 
 logger = colorlog.getLogger(__name__)
 logger.addHandler(handler)
@@ -35,13 +46,14 @@ app = Flask(__name__)
 
 # Initialize OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-#Raise an error if the API key is not set
+# Raise an error if the API key is not set
+# TODO: Remove and test at the Query ?
 if openai.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-#Raise an error if the API key is not set
+# Raise an error if the API key is not set
 if client.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
@@ -56,12 +68,13 @@ class FormattedContent:
     top_image_url: str
 
 def generate_summary(content):
+    # TODO: add OpenAI API Key as ARG
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini", # TODO: add model from Front
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
-                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\n{content}"}
+                {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\"\"\"{content}\"\"\""}
             ],
             max_tokens=500
         )
@@ -74,7 +87,7 @@ def generate_summary(content):
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
 
-    #Configure newspaper
+    # Configure newspaper
     config = Config()
     config.fetch_images = True
     config.memoize_articles = False
@@ -98,10 +111,11 @@ def fetch_and_format_content(url):
 
     title = unescape(article.title)
     content = unescape(article.text)
+    # TODO: Fix the call 'imageUtils.is_image_displayed' not geting the image url
     top_image_url = article.top_image if (imageUtils.is_image_displayed(article.top_image, article.html)) else ''
 
     return FormattedContent(
-        title=title, content=content, top_image_url=top_image_url
+        title=title, content=content, top_image_url=article.top_image
     )
 
 
@@ -150,34 +164,54 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
-#this is where tokenguard should be initialized - currently it is not being used
+# this is where tokenguard should be initialized - currently it is not being used
 def query_article():
+    # the user must input an API key
+    model = request.json.get("model")
+    api_key = request.json.get("apiKey")
+    
     content = request.json["content"]
     query = request.json["query"]
-    model = request.json.get(
-        "model", "gpt-4o-mini" # default
-    )
-    api_key = request.json.get("apiKey")
-    #use the provided API key if it is set, otherwise use the default key
-    if api_key:
+    if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
+        api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
         openai.api_key = api_key
+        indexModel = IndexModel.VECTOR_STORE
+        temperature = 0.0
+
+        prompt = f"""
+            You need to write to answer into an MarkDown format.
+            You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
+            Plz do not use '-' for space use '%20' instead, and only used referent to the content as the exact content words.
+            Do not hesitate to link and highlight each part of the content who help you giving your answer.
+            This is the content: <content>{content}</content>
+            """
+
+        try:
+            # Create RAG index
+            index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
+            query_engine = index.as_query_engine()
+            # Use RAG to get relevant content
+            response = query_engine.query(query)
+
+            return jsonify({"result": str(response)})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
     else:
-        openai.api_key = os.getenv("OPENAI_API_KEY")#this is the default key set in the .env file - when this app is deployed, the user provides their own key via the settings page. 
-
-    indexModel = IndexModel.VECTOR_STORE
-    temperature = 0.0
-
-    try:
-        # Create RAG index
-        index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
-        query_engine = index.as_query_engine()
-        # Use RAG to get relevant content
-        response = query_engine.query(query)
-        relevant_content = str(response)
-
-        return jsonify({"result": str(response)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        api_key = api_key if api_key else os.getenv("LLAMA_API_KEY")
+        llama = LlamaAPI(api_key)
+        try:
+            api_request_json = {
+                "model": MODELS[model],
+                "messages": [
+                    {"role": "system", "content": query},
+                    {"role": "user", "content": content},
+                ]
+            }
+            # Make your request and handle the response
+            response = llama.run(api_request_json)
+            return jsonify({"result": response.json()["choices"][0]["message"]["content"]})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400      
     
 
 if __name__ == "__main__":

@@ -1,165 +1,48 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dracula">
+{% extends "base.html" %} {% block content %}
+<div class="main-content">
+  <!-- Hidden element to store raw article content -->
+  <input type="hidden" id="hiddenContent" value="" />
 
-<head>
-    <meta charset="ISO-8859-1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reader</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-
-<body>
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header Section -->
-        <div class="flex justify-between items-center mb-8">
-            <h1 id="reader" class="text-4xl font-bold">📚 Reader</h1>
-            <div class="flex items-center space-x-4">
-                <button id ="settingsBtn" class="btn btn-primary rounded-xl"><i class="fa-solid fa-gear"></i></button>
-                </button>
-                <a href="https://github.com/francisgreenleaf/Reader" target="_blank" class="text-2xl">
-                    <i class="fab fa-github"></i>
-                </a>
-            </div>
-        </div>
-        <!-- Main Content -->
-        <div class="flex flex-col lg:flex-row gap-4"> <!-- Left Column -->
-            <div class="w-full lg:w-3/5 px-4 mb-4">
-                <label for="urlInput" class="block text-sm font-medium mb-2">Article URL:</label>
-                <div class="flex items-center space-x-2 mb-4">
-                    <input type="text" id="urlInput" placeholder="Enter URL"
-                        class="flex-grow input input-bordered input-secondary w-full">
-                    <button onclick="fetchArticle()" class="btn btn-secondary">
-                        Load <i class="fa-solid fa-download ml-2"></i>
-                    </button>
-                </div>
-                
-                <div id="error" class="text-error mb-4"></div>
-
-                <!-- Summary Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4">
-                    <input type="checkbox" id="summaryCollapse" />
-                    <div class="collapse-title text-xl font-medium">
-                        Summary
-                        <div id="summaryLoading" class="hidden flex justify-center items-center mt-4">
-                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="collapse-content" id="summary">
-                        <p>No summary available. Try loading a URL.</p>
-                    </div>
-                </div>
-
-                <!-- Content Collapse -->
-                <div class="collapse collapse-arrow bg-base-300 mb-4">
-                    <input type="checkbox" id="contentCollapse" />
-                    <div class="collapse-title text-xl font-medium" id="articleTitle">
-                        Article Content
-                        <div id="contentLoading" class="hidden flex justify-center items-center mt-4">
-                            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div id="content" class="collapse-content">
-                        <p>No content available. Try loading a URL.</p>
-                    </div>
-                    <!-- Hidden element to store raw article content -->
-                    <input type="hidden" id="hiddenContent" value="">
-                </div>
-
-                <button onclick="generatePDF()" class="btn btn-secondary w-full">
-                    Save as PDF
-                </button>
-            </div>
-            <!-- Right Column -->  
-            <div class="w-full lg:w-2/5 px-4">              
-                <label for="queryInput" class="block text-sm font-medium mb-2">Query:</label>
-                <div class="flex items-center space-x-2 mb-4">
-                    <input type="text" id="queryInput" placeholder="Ask a question!"
-                        class="flex-grow input input-bordered input-secondary w-full">
-                    <button onclick="queryArticle()" class="btn btn-secondary">
-                        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
-                    </button>
-                </div>
-        
-                <div id="queryLoading" class="hidden flex justify-center items-center mt-4">
-                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Processing...
-                </div>
-                <div id="queryResult" class="p-6 rounded-lg shadow-md bg-base-300 mb-4"></div>
-                <!-- New placeholder button here -->
-                <div class="flex justify-end">
-                    <button onclick="exasearch()" class="btn btn-secondary">Find Similar</button> <!-- use exasearch to find similar content-->
-                    </div>   
-            </div>
-        </div>
+  <!-- Chatbox Section -->
+  <div
+    id="queryResult"
+    class="prose overflow-y-auto h-96 m-auto mx-auto !max-w-none pt-16 pb-8 w-full lg:px-32 xl:px-64 px-4"
+  >
+    <!-- Loading Spinner -->
+    <div id="queryLoading" class="hidden flex justify-center items-center my-4">
+      <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        ></path>
+      </svg>
+      Loading...
     </div>
-    <!-- Settings Modal -->
-    <dialog id="settings_modal" class="modal">
-        <div class="modal-box">
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-lg font-bold">Settings</h3>
-            <div class="py-4">
-                <!-- OpenAI API Key Input -->
-                <label for="apiKeyInput" class="block text-sm font-medium mb-2">OpenAI API Key:</label>
-                <div class="flex space-x-2 mb-4">
-                    <input type="password" id="apiKeyInput" class="input input-bordered flex-grow" placeholder="Enter OpenAI API Key">
-                    <button id="saveApiKeyButton" class="btn">Save</button>
-                </div>
-                <!-- Model Selection -->
-                <label for="modelSelect" class="block text-sm font-medium mb-2">Select Model:</label>
-                <select id="modelSelect" class="select select-bordered w-full mb-4">
-                    <option value="gpt-4o-mini">GPT-4o Mini</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    <option value="gpt-4o">GPT-4o</option>
-                </select>
-                <!-- Theme Selection -->
-                <label for="themeSelect" class="block text-sm font-medium mb-2">Select Theme:</label>
-                <select id="themeSelect" class="select select-bordered w-full mb-4">
-                    <!-- The options will be generated by JavaScript -->
-                </select>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>Close</button>
-        </form>
-    </dialog>
-</body>
-<script src="/static/script.js"></script>
-<script>
-    const themeToggleBtn = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-    const htmlElement = document.documentElement;
+  </div>
 
-    themeToggleBtn.addEventListener('click', () => {
-        const currentTheme = htmlElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'retro' ? 'dracula' : 'retro';
-        
-        htmlElement.setAttribute('data-theme', newTheme);
-
-        // Update icon and text based on the new theme
-        if (newTheme === 'dracula') {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        } else {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        }
-    });
-</script>
-</html>
+  <!-- Submit Section at the bottom -->
+  <div class="submit-section p-0 pb-4 w-full lg:px-32 xl:px-64">
+    <div class="flex items-center space-x-2">
+      <input
+        type="text"
+        id="queryInput"
+        placeholder="Ask a question!"
+        class="flex-grow input input-bordered input-secondary w-full"
+        onkeydown="handleKeyDown(event, queryArticle)"
+      />
+      <button onclick="queryArticle()" class="btn">
+        Submit <i class="fa-solid fa-paper-plane ml-2"></i>
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
