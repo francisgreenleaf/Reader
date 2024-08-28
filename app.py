@@ -176,13 +176,13 @@ def query_article():
         api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
         openai.api_key = api_key
         indexModel = IndexModel.VECTOR_STORE
-        temperature = 0.0
+        temperature = 0.2
 
         prompt = f"""
-            You need to write to answer into an MarkDown format.
+            You need to write your answer into the MarkDown format.
             You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-            Plz do not use '-' for space use '%20' instead, and only used referent to the content as the exact content words.
-            Do not hesitate to link and highlight each part of the content who help you giving your answer.
+            Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
+            Do not hesitate to link and highlight each part of the content that informs your answer.
             This is the content: <content>{content}</content>
             """
 
