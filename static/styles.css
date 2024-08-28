@@ -6,6 +6,9 @@
     font-family: var(--read-font-family);
 }
 
+#modalContent img, .chat img{
+    margin: auto;
+}
 
 .centered-container {
     display: flex;
