@@ -95,7 +95,7 @@ async function queryArticle() {
     try {
         const response = await axios.post('/query', { content: content, query: query, model: model });
         // Process the response data using marked.js and DOMPurify
-        const sanitizedContent = DOMPurify.sanitize(marked.parse(response.data.result));
+        const sanitizedContent = DOMPurify.sanitize(response.data.result);
         queryResultElement.innerHTML = sanitizedContent;
     } catch (error) {
         queryResultElement.textContent = 'Error querying article: ' + (error.response?.data?.error || error.message);

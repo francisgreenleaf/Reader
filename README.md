@@ -1,6 +1,7 @@
 # 📚 Reader App
 
 The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques.
+
 ## Setup
 
 1. Clone this repository to your local machine.
@@ -8,19 +9,21 @@ The Reader App is a web application that allows users to fetch articles from a g
 2. Navigate to the project directory `cd Reader`.
 
 3. Create a .env file in the project directory and set your OpenAI API key as an environment variable:
-    `OPENAI_API_KEY=YOUR_REAL_KEY`
+   `OPENAI_API_KEY=YOUR_REAL_KEY`
 
-    If you don't have an OpenAI API Key, sign into platform.openai.com and generate one there. 
-    
+   If you don't have an OpenAI API Key, sign into platform.openai.com and generate one there.
+
 4. Install the required dependencies:
+
    ```sh
     pip install -r requirements.txt
-    ```
+   ```
 
 5. Run the app using the following command:
-    ```sh
-    python app.py
-    ```
+
+   ```sh
+   python app.py
+   ```
 
 6. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8080`).
 
@@ -42,8 +45,9 @@ The Reader App is a web application that allows users to fetch articles from a g
 
 If you'd like to contribute to the Reader App, feel free to submit a pull request or open an issue on the GitHub repository.
 
-## Acknowledgements 
-This app was developed as part of the Stanford Continuing Studies class TECH-16: LLMs for Business with Python taught by Charlie Flanagan. The app owe's its thanks to him, Dima Timofeev, and many others including the teams who built the app's various dependencies.  
+## Acknowledgements
+
+This app was developed as part of the Stanford Continuing Studies class TECH-16: LLMs for Business with Python taught by Charlie Flanagan. The app owes its thanks to him, Dima Timofeev, and many others including the teams who built the app's various dependencies.
 
 ## License
 

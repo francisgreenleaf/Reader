@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fix list Issues */
+@layer base {
+
+    p {
+        margin: .5em;
+    }
+}
