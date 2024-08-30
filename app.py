@@ -14,8 +14,10 @@ from flask import (
     jsonify,
     send_file,
     send_from_directory,
+    session,
 )
 from flask_caching import Cache
+from flask_session import Session  # Add this import for session management
 from newspaper import Article, ArticleException, Config
 
 from utils.constants import IndexModel
@@ -60,6 +62,10 @@ if client.api_key is None:
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
+
+# Configure session for Flask app
+app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on the file system
+Session(app)  # Initialize the session extension
 
 @dataclass
 class FormattedContent:
@@ -172,26 +178,48 @@ def query_article():
     
     content = request.json["content"]
     query = request.json["query"]
+
+    model = request.json.get("model", "gpt-4o-mini")  # default
+    indexModel = IndexModel.VECTOR_STORE
+    temperature = 0.2
+
     if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
-        api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
-        openai.api_key = api_key
-        indexModel = IndexModel.VECTOR_STORE
-        temperature = 0.2
-
-        prompt = f"""
-            You need to write your answer into the MarkDown format.
-            You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-            Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
-            Do not hesitate to link and highlight each part of the content that informs your answer.
-            This is the content: <content>{content}</content>
-            """
-
         try:
-            # Create RAG index
-            index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
-            query_engine = index.as_query_engine()
+            api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
+            openai.api_key = api_key
+
+            # Initialize or retrieve the RAG index from session
+            if 'index_abc' not in session:
+                # Create the RAG index
+                print("Initialize a session index")
+                index = indexUtils.create_rag_index(content, model, indexModel)(content, model, temperature)
+                session['index_abc'] = index
+                session['chat_history'] = []
+            else:
+                print("Reuse a session index")
+                index = session['index_abc']
+
+            # Create the chat engine
+            query_engine = index.as_chat_engine(chat_mode='openai', verbose=True)
+            
+            # Append previous chat history if any
+            for msg in session['chat_history']:
+                query_engine.chat_history.append(msg)
+            print("History: ", query_engine.chat_history)
+            ## Need to discuss with team!!
+            query = "History: " + str(query_engine.chat_history) + '\n\n' + query
+            print("Query: ", query)
+
             # Use RAG to get relevant content
-            response = query_engine.query(query)
+            suffix = f"""
+                \n\nYou need to write your answer into the MarkDown format.
+                Please make sure the output is well formatted. For example, add bold on numbers or bullet points if necessary.
+                You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
+                Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
+                Do not hesitate to link and highlight each part of the content that informs your answer.
+                """
+            response = query_engine.query(query + suffix)
+            session['chat_history'].append({"query": query, "response": str(response)})
 
             return jsonify({"result": str(response)})
         except Exception as e:
@@ -213,6 +241,15 @@ def query_article():
         except Exception as e:
             return jsonify({"error": str(e)}), 400      
     
+
+
+
+@app.route("/clear_history", methods=["POST"])
+def clear_history():
+    session.pop('index', None)
+    session.pop('chat_history', None)
+    return jsonify({"status": "Chat history cleared"})
+
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
