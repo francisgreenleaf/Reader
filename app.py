@@ -5,24 +5,13 @@ from html import unescape
 import colorlog
 import openai
 import requests
-from llamaapi import LlamaAPI
 from dotenv import load_dotenv
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify,
-    send_file,
-    send_from_directory,
-)
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from flask_caching import Cache
+from flask_limiter import Limiter
 from newspaper import Article, ArticleException, Config
-
-from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
-from utils.index import indexUtils
-from utils.tokenguard import tokenguard
 from openai import OpenAI
 
 MODELS = {
@@ -39,27 +28,31 @@ nltk.download('punkt')
 logger = colorlog.getLogger(__name__)
 logger.addHandler(handler)
 
-# Load environment variables from .env file
+# Load environment variables at the beginning
 load_dotenv()
 
+#initialize Flask
 app = Flask(__name__)
-
-# Initialize OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# Raise an error if the API key is not set
-# TODO: Remove and test at the Query ?
-if openai.api_key is None:
-    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
-
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# Raise an error if the API key is not set
-if client.api_key is None:
-    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
 # Initialize Flask-Caching
 app.config["CACHE_TYPE"] = "SimpleCache"
 cache = Cache(app)
+
+# TODO: Initialize rate limiter
+#imiter = Limiter(
+   # get_remote_address,
+    #app=app,
+    #default_limits=["200 per day", "50 per hour"],
+    #storage_uri="memory://localhost:5050"
+#)
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
+
+# Initialize OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 
 @dataclass
 class FormattedContent:
@@ -131,7 +124,10 @@ def public_files(filename):
 
 @app.route("/fetch", methods=["POST"])
 def fetch_article():
-    url = request.json["url"]
+    url = request.json.get("url")
+    if not url:
+        return handle_error("Missing URL", 400)
+    
     try:
         content = fetch_and_format_content(url)
         if not content.title or not content.content:
@@ -140,6 +136,8 @@ def fetch_article():
         summary = generate_summary(content.content)
         
         return jsonify({"content": content.__dict__, "summary": summary})
+    except Exception as e:
+        return handle_error(f"Error fetching article: {str(e)}")
     except Exception as e:
         error_message = f"Error fetching article: {str(e)}"
         logger.error(error_message, exc_info=True)
@@ -164,55 +162,72 @@ def generate_pdf_route():
 
 
 @app.route("/query", methods=["POST"])
-# this is where tokenguard should be initialized - currently it is not being used
 def query_article():
-    # the user must input an API key
-    model = request.json.get("model")
-    api_key = request.json.get("apiKey")
-    
-    content = request.json["content"]
-    query = request.json["query"]
-    if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
-        api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
-        openai.api_key = api_key
-        indexModel = IndexModel.VECTOR_STORE
-        temperature = 0.2
+    logger.info("Received query request")
+    content = request.json.get("content")
+    query = request.json.get("query")
 
-        prompt = f"""
-            You need to write your answer into the MarkDown format.
-            You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-            Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
-            Do not hesitate to link and highlight each part of the content that informs your answer.
-            This is the content: <content>{content}</content>
-            """
+    logger.info(f"Content length: {len(content) if content else 'None'}, Query: {query}")
 
-        try:
-            # Create RAG index
-            index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
-            query_engine = index.as_query_engine()
-            # Use RAG to get relevant content
-            response = query_engine.query(query)
+    if not all([content, query]):
+        logger.error("Missing required fields in request")
+        return jsonify({"error": "Missing required fields"}), 400
 
-            return jsonify({"result": str(response)})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
-    else:
-        api_key = api_key if api_key else os.getenv("LLAMA_API_KEY")
-        llama = LlamaAPI(api_key)
-        try:
-            api_request_json = {
-                "model": MODELS[model],
-                "messages": [
-                    {"role": "system", "content": query},
-                    {"role": "user", "content": content},
-                ]
-            }
-            # Make your request and handle the response
-            response = llama.run(api_request_json)
-            return jsonify({"result": response.json()["choices"][0]["message"]["content"]})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400      
-    
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        logger.error("OpenAI API key not found in environment variables")
+        return jsonify({"error": "OpenAI API key not configured"}), 500
+
+    client = OpenAI(api_key=api_key)
+
+    try:
+        # First, check if the query is related to the article
+        relevance_check = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an assistant that determines if a question is related to a given article."},
+                {"role": "user", "content": f"Article content: {content[:500]}...\n\nQuestion: {query}\n\nIs this question related to the article? Answer with 'Yes' or 'No' only."}
+            ],
+            max_tokens=10
+        )
+        is_relevant = relevance_check.choices[0].message.content.strip().lower() == "yes"
+
+        if is_relevant:
+            # If the query is relevant, proceed with answering it
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that answers questions about articles."},
+                    {"role": "user", "content": f"Article content: {content}\n\nQuestion: {query}"}
+                ],
+                max_tokens=500
+            )
+            answer = response.choices[0].message.content.strip()
+        else:
+            # If the query is not relevant, provide a polite response
+            answer = (
+                "I apologize, but your question doesn't seem to be related to the article we're discussing. "
+                "Would you like to ask something about the content of the article instead? "
+                "I'd be happy to help you understand or analyze any part of the article."
+            )
+
+        logger.info("Successfully generated response")
+        return jsonify({"result": answer})
+    except Exception as e:
+        error_message = f"Error processing query: {str(e)}"
+        logger.error(error_message)
+        return jsonify({"error": error_message}), 500
+
+
+def handle_error(error_message, status_code=500):
+    logger.error(error_message)
+    return jsonify({"error": error_message}), status_code
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify(error="Rate limit exceeded. Please try again later."), 429
+
 
 if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+    app.run(port=5000, debug=True)

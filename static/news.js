@@ -63,7 +63,7 @@ const loadNewsContent = async (loadFunction, container, loadMoreButton) => {
 
 // Initialize sections with "Load More" buttons
 window.onload = () => {
-    writeSectionToChat('Hacker News', loadHackerNewsLinks);
-    writeSectionToChat('Arxiv Papers', loadArxivPapers);
-    writeSectionToChat('GDELT News', loadGDELTNews);
+    //writeSectionToChat('Hacker News', loadHackerNewsLinks);
+    //writeSectionToChat('Arxiv Papers', loadArxivPapers);
+    //writeSectionToChat('GDELT News', loadGDELTNews);
 };
