@@ -2,48 +2,152 @@
 
 The Reader App is a web application that allows users to fetch articles from a given URL, view the content, generate a PDF version of the article, and query the article using natural language processing techniques.
 
+## Features
+
+- 📰 Article Fetching: Extract content from any web URL
+- 📝 Automatic Summarization: Generate concise summaries using GPT models
+- 🔍 Interactive Querying: Ask questions about the article using various LLM models
+- 📄 PDF Generation: Download articles as beautifully formatted PDFs
+- 🎨 Multiple Themes: Support for light, dark, and sepia themes
+- 💡 Smart Highlighting: Highlight relevant parts of the article during Q&A
+
+## Available Models
+
+- OpenAI Models:
+  - GPT-4 Turbo Preview
+  - GPT-3.5 Turbo
+  - GPT-4
+- Llama Models:
+  - Llama 3.1 (70B)
+  - Gemma 2 (27B)
+  - Mistral Large (Mixtral-8x7B)
+  - Qwen 2 (72B)
+
+## Project Structure
+
+```
+Reader/
+├── app.py                 # Main Flask application
+├── static/               # Static assets
+│   ├── chat.js          # Chat functionality
+│   ├── news.js          # News-related features
+│   ├── script.js        # Core JavaScript
+│   ├── styles.css       # Main styles
+│   ├── tailwind.css     # Tailwind styles
+│   ├── themes.js        # Theme switching
+│   └── utils.js         # Utility functions
+├── templates/           # HTML templates
+│   ├── base.html       # Base template
+│   ├── index.html      # Main page
+│   └── navbar.html     # Navigation
+└── utils/              # Python utilities
+    ├── constants.py    # Constants and enums
+    ├── fetch/         # URL fetching utilities
+    ├── generate/      # PDF generation
+    ├── index/         # Search indexing
+    └── tokenguard/    # Token management
+```
+
 ## Setup
 
-1. Clone this repository to your local machine.
+### Prerequisites
 
-2. Navigate to the project directory `cd Reader`.
+- Python 3.11 or higher
+- pip (Python package manager)
+- OpenAI API key
+- (Optional) Llama API key for additional models
 
-3. Create a .env file in the project directory and set your OpenAI API key as an environment variable:
-   `OPENAI_API_KEY=YOUR_REAL_KEY`
+### Installation
 
-   If you don't have an OpenAI API Key, sign into platform.openai.com and generate one there.
-
-4. Install the required dependencies:
-
+1. Clone this repository:
    ```sh
-    pip install -r requirements.txt
+   git clone https://github.com/yourusername/Reader.git
+   cd Reader
    ```
 
-5. Run the app using the following command:
+2. Create and activate a virtual environment:
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
+3. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. Create a .env file with your API keys:
+   ```sh
+   OPENAI_API_KEY=your_openai_key_here
+   LLAMA_API_KEY=your_llama_key_here  # Optional
+   ```
+
+5. Run the application:
    ```sh
    python app.py
    ```
 
-6. Open your web browser and go to the URL provided by Streamlit (usually `http://localhost:8080`).
+6. Open your browser and navigate to `http://localhost:8080`
 
-## Usage
+## Environment Variables
 
-1. Enter the URL of the article you want to fetch in the provided input field.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| OPENAI_API_KEY | Yes | Your OpenAI API key |
+| LLAMA_API_KEY | No | Your Llama API key for additional models |
+| FLASK_ENV | No | Set to 'development' for debug mode |
+| PORT | No | Custom port (default: 8080) |
 
-2. Click the "Fetch Article" button to retrieve the article content.
+## API Documentation
 
-3. The article's title, summary, and content will be displayed on the page.
+### /fetch (POST)
+Fetches and processes an article from a URL.
+- Request body: `{ "url": "article_url" }`
+- Response: `{ "content": { "title", "content", "top_image_url" }, "summary" }`
 
-4. You can download a PDF version of the article by clicking the "Download as PDF" button.
+### /query (POST)
+Queries an article using natural language.
+- Request body: `{ "content": "article_content", "query": "your_question", "model": "model_name" }`
+- Response: `{ "result": "answer" }`
 
-5. To query the article, enter your query in the provided input field and click the "Submit Query" button.
+### /generate_pdf (POST)
+Generates a PDF version of the article.
+- Request body: `{ "title": "article_title", "content": "article_content", "imageUrl": "top_image_url" }`
+- Response: PDF file
 
-6. The app will process your query using natural language processing techniques and display the relevant information from the article.
+## Troubleshooting
+
+### Common Issues
+
+1. **"Unable to fetch article"**
+   - Check if the website allows web scraping
+   - Try using a different URL from the same source
+   - Ensure you're not being rate-limited
+
+2. **"OpenAI API Error"**
+   - Verify your API key is correct
+   - Check your API usage limits
+   - Ensure your request isn't too long
+
+3. **PDF Generation Fails**
+   - Check if the article content is not empty
+   - Verify the image URL is accessible
+   - Ensure you have sufficient permissions
+
+### Development Tips
+
+- Enable debug mode for detailed error messages
+- Use the browser console to check for JavaScript errors
+- Monitor the Flask server logs for backend issues
+- Check the network tab for API response details
 
 ## Contributing
 
-If you'd like to contribute to the Reader App, feel free to submit a pull request or open an issue on the GitHub repository.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -am 'Add feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
 
 ## Acknowledgements
 
