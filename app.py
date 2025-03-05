@@ -3,7 +3,6 @@ import nltk
 from dataclasses import dataclass
 from html import unescape
 import colorlog
-import openai
 import requests
 from llamaapi import LlamaAPI
 from dotenv import load_dotenv
@@ -17,13 +16,13 @@ from flask import (
 )
 from flask_caching import Cache
 from newspaper import Article, ArticleException, Config
+from openai import OpenAI, OpenAIError
 
 from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
 from utils.tokenguard import tokenguard
-from openai import OpenAI
 
 MODELS = {
     "llama-3.1": "llama3.1-70b",
@@ -44,16 +43,8 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# Raise an error if the API key is not set
-# TODO: Remove and test at the Query ?
-if openai.api_key is None:
-    raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
-
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# Raise an error if the API key is not set
 if client.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
 
@@ -68,10 +59,9 @@ class FormattedContent:
     top_image_url: str
 
 def generate_summary(content):
-    # TODO: add OpenAI API Key as ARG
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini", # TODO: add model from Front
+            model="gpt-4-turbo-preview",  # Using a stable model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
                 {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\"\"\"{content}\"\"\""}
@@ -79,9 +69,12 @@ def generate_summary(content):
             max_tokens=500
         )
         return response.choices[0].message.content.strip()
+    except OpenAIError as e:
+        logger.error(f"OpenAI API Error: {str(e)}")
+        return f"Error generating summary: {str(e)}"
     except Exception as e:
-        logger.error(f"Error generating summary: {e}")
-        return "Unable to generate summary."
+        logger.error(f"Unexpected error generating summary: {str(e)}")
+        return "An unexpected error occurred while generating the summary."
 
 @cache.memoize(timeout=300)  # cache for 5 minutes
 def fetch_and_format_content(url):
@@ -172,29 +165,36 @@ def query_article():
     
     content = request.json["content"]
     query = request.json["query"]
-    if model in ["gpt-4o-mini", "gpt-3.5-turbo",  "gpt-4o"]:
-        api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
-        openai.api_key = api_key
-        indexModel = IndexModel.VECTOR_STORE
-        temperature = 0.2
-
-        prompt = f"""
-            You need to write your answer into the MarkDown format.
-            You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-            Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
-            Do not hesitate to link and highlight each part of the content that informs your answer.
-            This is the content: <content>{content}</content>
-            """
-
+    if model in ["gpt-4-turbo-preview", "gpt-3.5-turbo", "gpt-4"]:
         try:
+            # Create a new OpenAI client with the provided API key or use the default one
+            openai_client = OpenAI(api_key=api_key) if api_key else client
+            indexModel = IndexModel.VECTOR_STORE
+            temperature = 0.2
+
+            prompt = f"""
+                You need to write your answer into the MarkDown format.
+                You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
+                Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
+                Do not hesitate to link and highlight each part of the content that informs your answer.
+                This is the content: <content>{content}</content>
+                """
+
             # Create RAG index
-            index = indexUtils.create_rag_index(content, model, indexModel)(prompt, model, temperature)
+            index = indexUtils.create_rag_index(prompt, model, indexModel)
+            if index is None:
+                raise ValueError("Failed to create RAG index")
+            
             query_engine = index.as_query_engine()
             # Use RAG to get relevant content
             response = query_engine.query(query)
 
             return jsonify({"result": str(response)})
+        except OpenAIError as e:
+            logger.error(f"OpenAI API Error in query: {str(e)}")
+            return jsonify({"error": f"OpenAI API Error: {str(e)}"}), 400
         except Exception as e:
+            logger.error(f"Unexpected error in query: {str(e)}")
             return jsonify({"error": str(e)}), 400
     else:
         api_key = api_key if api_key else os.getenv("LLAMA_API_KEY")
