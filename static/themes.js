@@ -3,13 +3,11 @@ const htmlElement = document.documentElement;
 /**
  * List of available themes from DaisyUI
  * https://daisyui.com/docs/themes/
+ * Reduced to only dark themes
  */
 const themes = [
-    "light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave", 
-    "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua", 
-    "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula", "cmyk", 
-    "autumn", "business", "acid", "lemonade", "night", "coffee", "winter", 
-    "dim", "nord", "sunset"
+    "dark", "black", "dracula", "night", "dim", "nord", "sunset",
+    "halloween", "synthwave", "cyberpunk", "luxury", "coffee"
 ];
 
 /**

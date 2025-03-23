@@ -44,8 +44,7 @@ Reader/
     ├── constants.py    # Constants and enums
     ├── fetch/         # URL fetching utilities
     ├── generate/      # PDF generation
-    ├── index/         # Search indexing
-    └── tokenguard/    # Token management
+    └── index/         # Search indexing
 ```
 
 ## Setup

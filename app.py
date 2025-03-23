@@ -35,7 +35,6 @@ from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
-from utils.tokenguard import tokenguard
 
 MODELS = {
     "llama-3.1": "llama3.1-70b",
@@ -303,7 +302,6 @@ def generate_pdf_route():
 @app.route("/query", methods=["POST"])
 @limiter.limit("20 per minute")  # Rate limit for queries
 @handle_timeout
-# this is where tokenguard should be initialized - currently it is not being used
 def query_article():
     data = request.json
     if not data:
