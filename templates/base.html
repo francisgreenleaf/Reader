@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dracula">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="ISO-8859-1">
@@ -53,12 +53,13 @@
             <h3 class="text-lg font-bold">Settings</h3>
             <div class="py-4">
 
-                <!-- OpenAI API Key Input -->
-                <label for="apiKeyInput" class="block text-sm font-medium mb-2">API Key:</label>
+                <!-- API Key Input -->
+                <label for="apiKeyInput" class="block text-sm font-medium mb-2">API Key (OpenAI or Llama):</label>
                 <div class="flex space-x-2 mb-4">
-                    <input type="password" id="apiKeyInput" class="input input-bordered flex-grow" placeholder="Enter API Key">
+                    <input type="password" id="apiKeyInput" class="input input-bordered flex-grow" placeholder="Enter API Key for selected model">
                     <button id="saveApiKeyButton" class="btn">Save</button>
                 </div>
+                <p class="text-xs mb-4">The API key will be used based on the selected model. For OpenAI models (GPT-4o, GPT-3.5), enter an OpenAI API key. For other models, enter the appropriate API key.</p>
 
                 <!-- Model Selection -->
                 <label for="modelSelect" class="block text-sm font-medium mb-2">Select Model:</label>

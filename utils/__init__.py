@@ -7,6 +7,5 @@ from . import constants
 from . import fetch
 from . import generate
 from . import index
-from . import tokenguard
 
-__all__ = ['constants', 'fetch', 'generate', 'index', 'tokenguard']
+__all__ = ['constants', 'fetch', 'generate', 'index']

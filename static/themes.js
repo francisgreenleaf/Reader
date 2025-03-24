@@ -1,13 +1,11 @@
 const htmlElement = document.documentElement;
 
 /**
- * List of available themes from DaisyUI
- * https://daisyui.com/docs/themes/
- * Reduced to only dark themes
+ * List of available themes
+ * Reduced to only light and dark themes
  */
 const themes = [
-    "dark", "black", "dracula", "night", "dim", "nord", "sunset",
-    "halloween", "synthwave", "cyberpunk", "luxury", "coffee"
+    "light", "dark"
 ];
 
 /**
@@ -15,11 +13,9 @@ const themes = [
  * This function runs when the DOM content is fully loaded.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme) {
-        applyTheme(savedTheme);
-        themeSelectElement.value = savedTheme;
-    }
+    const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+    applyTheme(savedTheme);
+    themeSelectElement.value = savedTheme;
 });
 
 /**
@@ -29,6 +25,32 @@ document.addEventListener('DOMContentLoaded', () => {
 const applyTheme = (theme) => {
     htmlElement.setAttribute('data-theme', theme);
     localStorage.setItem('selectedTheme', theme);
+    updateThemeToggleIcon(theme);
+}
+
+/**
+ * Function to toggle between light and dark themes
+ */
+const toggleTheme = () => {
+    const currentTheme = localStorage.getItem('selectedTheme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+    themeSelectElement.value = newTheme;
+}
+
+/**
+ * Update the theme toggle button icon based on the current theme
+ * @param {string} theme - The current theme
+ */
+const updateThemeToggleIcon = (theme) => {
+    const themeIcon = document.getElementById('themeIcon');
+    if (themeIcon) {
+        if (theme === 'light') {
+            themeIcon.className = 'fa-solid fa-moon'; // Moon icon for dark mode toggle
+        } else {
+            themeIcon.className = 'fa-solid fa-sun'; // Sun icon for light mode toggle
+        }
+    }
 }
 
 /**
