@@ -67,10 +67,16 @@ const fetchArticle = async () => {
         topImageUrl = article.top_image_url;
 
         writeToChat(true, `${topImageUrl !== '' ? `![Header](${topImageUrl})` : ''}\n\n##${articleTitle}\n\n${response.data.summary}`, 'primary');
-        hiddenContentElement.value = `
-            <img src=${topImageUrl} ><h1><a href="${url}" target="_blank">${articleTitle}</a></h1>
-            ${article.content}
-        `; // Store raw content in hidden element
+        
+        // Store markdown content if available, otherwise use the regular content
+        if (article.markdown_content) {
+            hiddenContentElement.value = article.markdown_content;
+        } else {
+            hiddenContentElement.value = `
+                <img src=${topImageUrl} ><h1><a href="${url}" target="_blank">${articleTitle}</a></h1>
+                ${article.content}
+            `;
+        }
 
     } catch (error) {
         writeToChat(true, `Error fetching article.`, 'error');
@@ -134,7 +140,16 @@ const queryArticle = async () => {
     }
 
     try {
-        const response = await axios.post('/query', { content: content, query: query, model: model });
+        // Get the API key from localStorage using the getApiKey function
+        const apiKey = getApiKey();
+        
+        // Include the API key in the request if it exists
+        const response = await axios.post('/query', { 
+            content: content, 
+            query: query, 
+            model: model,
+            apiKey: apiKey
+        });
         writeToChat(true, response.data.result);
     } catch (error) {
         writeToChat(true, `Error querying article.`, 'error');

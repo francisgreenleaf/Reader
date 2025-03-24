@@ -4,14 +4,47 @@ body {
 }
 
 a {
-    color: #4da6ff;
+    color: #7a7a7a;
 }
 
 .btn-primary {
-    background-color: #4da6ff;
+    background-color: #5a5a5a;
     color: #ffffff;
 }
 
 .bg-base-300 {
     background-color: #2a2a2a;
+}
+
+/* Override any potential pink/purple colors from DaisyUI */
+:root {
+    --p: 0 0% 50%; /* Primary color (gray) */
+    --pf: 0 0% 45%; /* Primary focus */
+    --pc: 0 0% 90%; /* Primary content */
+    
+    --s: 0 0% 40%; /* Secondary color (darker gray) */
+    --sf: 0 0% 35%; /* Secondary focus */
+    --sc: 0 0% 90%; /* Secondary content */
+    
+    --a: 0 0% 60%; /* Accent color (lighter gray) */
+    --af: 0 0% 55%; /* Accent focus */
+    --ac: 0 0% 90%; /* Accent content */
+}
+
+/* Additional overrides for any UI elements that might use purple/pink */
+.btn-accent {
+    background-color: #5a5a5a !important;
+    color: #ffffff !important;
+}
+
+.text-accent {
+    color: #7a7a7a !important;
+}
+
+.bg-accent {
+    background-color: #5a5a5a !important;
+}
+
+.border-accent {
+    border-color: #5a5a5a !important;
 }

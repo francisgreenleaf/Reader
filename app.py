@@ -26,7 +26,7 @@ from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from llamaapi import LlamaAPI
-from newspaper import Article, ArticleException, Config
+from firecrawl import FirecrawlApp
 from openai import OpenAI, OpenAIError
 
 # Local imports
@@ -104,9 +104,13 @@ def validate_url(url):
     Validate URL format and scheme
     """
     try:
+        logger.info(f"Validating URL: {url}")
         result = urlparse(url)
-        return all([result.scheme in ['http', 'https'], result.netloc])
-    except:
+        is_valid = all([result.scheme in ['http', 'https'], result.netloc])
+        logger.info(f"URL validation result: {is_valid}, scheme: {result.scheme}, netloc: {result.netloc}")
+        return is_valid
+    except Exception as e:
+        logger.error(f"URL validation error: {str(e)}")
         return False
 
 def validate_content(content):
@@ -150,6 +154,7 @@ class FormattedContent:
     title: str
     content: str
     top_image_url: str
+    markdown_content: str = ""
 
 def generate_summary(content):
     try:
@@ -175,42 +180,55 @@ def generate_summary(content):
 @handle_timeout
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
-
-    # Configure newspaper
-    config = Config()
-    config.fetch_images = True
-    config.memoize_articles = False
-
-    article = Article(url, config=config)
-
+    
+    firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY")
+    if not firecrawl_api_key:
+        raise ValueError("Firecrawl API Key is not set. Please set it in the .env file.")
+    
     try:
-        # Configure requests session with timeout
-        session = requests.Session()
-        session.timeout = 10  # 10 seconds timeout
-        article.session = session
+        # Initialize FirecrawlApp
+        logger.info(f"Initializing FirecrawlApp with API key: {firecrawl_api_key[:5]}...")
+        firecrawl_app = FirecrawlApp(api_key=firecrawl_api_key)
         
-        article.download()
-        article.parse()
-
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 403:
-            logger.error(f"403 Forbidden error when accessing {url}")
-            raise ValueError(f"Access to the content at {url} is forbidden. The website may be blocking automated access or requiring authentication.")
-    except ArticleException as e:
-        logger.error(f"Error fetching article: {e}")
-        raise ValueError(f"Failed to parse article from {url}: {str(e)}")
+        # Scrape the URL and get markdown content
+        logger.info(f"Scraping URL with firecrawl: {url}")
+        scrape_result = firecrawl_app.scrape_url(url, params={'formats': ['markdown']})
+        
+        # Log the result structure
+        logger.info(f"Firecrawl result keys: {scrape_result.keys()}")
+        
+        # Extract title and content
+        title = scrape_result.get('title', '')
+        markdown_content = scrape_result.get('markdown', '')
+        
+        logger.info(f"Extracted title: {title}")
+        logger.info(f"Markdown content length: {len(markdown_content)}")
+        
+        # For now, we'll leave top_image_url empty as per instruction
+        top_image_url = ''
+        
+        # Use markdown as the content for compatibility with existing code
+        content = markdown_content
+        
+        # If title is missing but we have content, use the URL as the title
+        if not title and content:
+            logger.info("Title is missing, using URL as title")
+            title = f"Article from {url}"
+        
+        if not content:
+            logger.error(f"Failed to extract meaningful content: content={bool(content)}")
+            raise ValueError("Failed to extract meaningful content from the URL")
+        
+        return FormattedContent(
+            title=title, 
+            content=content, 
+            top_image_url=top_image_url,
+            markdown_content=markdown_content
+        )
+        
     except Exception as e:
         logger.error(f"Unexpected error fetching article: {e}")
         raise ValueError(f"An unexpected error occurred while fetching the article from {url}: {str(e)}")
-
-    title = unescape(article.title)
-    content = unescape(article.text)
-    # TODO: Fix the call 'imageUtils.is_image_displayed' not geting the image url
-    top_image_url = article.top_image if (imageUtils.is_image_displayed(article.top_image, article.html)) else ''
-
-    return FormattedContent(
-        title=title, content=content, top_image_url=article.top_image
-    )
 
 
 @app.route("/")
