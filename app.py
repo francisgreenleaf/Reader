@@ -30,11 +30,11 @@ from firecrawl import FirecrawlApp
 from openai import OpenAI, OpenAIError
 
 # Local imports
-
 from utils.constants import IndexModel
 from utils.fetch import imageUtils
 from utils.generate import pdfUtils
 from utils.index import indexUtils
+from utils.validation.queryValidator import QueryValidator
 
 MODELS = {
     "llama-3.1": "llama3.1-70b",
@@ -59,6 +59,16 @@ app = Flask(__name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 if client.api_key is None:
     raise ValueError("OpenAI API Key is not set. Please set it in the .env file.")
+
+# Initialize Firecrawl client
+firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY")
+if not firecrawl_api_key:
+    raise ValueError("Firecrawl API Key is not set. Please set it in the .env file.")
+
+firecrawl_app = FirecrawlApp(api_key=firecrawl_api_key)
+
+# Initialize Query Validator
+query_validator = QueryValidator(client)
 
 # Enhanced caching configuration
 cache_config = {
@@ -122,15 +132,6 @@ def validate_content(content):
     # Limit content to 100KB
     return len(content.encode('utf-8')) <= 100 * 1024
 
-def validate_api_key(api_key):
-    """
-    Validate API key format
-    """
-    if not api_key:
-        return True  # Allow empty for default key
-    # Basic format check for OpenAI and Llama API keys
-    return bool(re.match(r'^[a-zA-Z0-9_-]{20,}$', api_key))
-
 def handle_timeout(func):
     """
     Decorator to handle request timeouts
@@ -158,8 +159,9 @@ class FormattedContent:
 
 def generate_summary(content):
     try:
+        # Use more cost-effective model for summaries
         response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",  # Using a stable model
+            model="gpt-4o-mini",  # Using cost-effective model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes articles."},
                 {"role": "user", "content": f"Summarize the following article in a concise paragraph:\n\"\"\"{content}\"\"\""}
@@ -181,54 +183,69 @@ def generate_summary(content):
 def fetch_and_format_content(url):
     logger.info(f"Fetching content from URL: {url}")
     
-    firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY")
-    if not firecrawl_api_key:
-        raise ValueError("Firecrawl API Key is not set. Please set it in the .env file.")
-    
     try:
-        # Initialize FirecrawlApp
-        logger.info(f"Initializing FirecrawlApp with API key: {firecrawl_api_key[:5]}...")
-        firecrawl_app = FirecrawlApp(api_key=firecrawl_api_key)
+        # Use Firecrawl API directly with updated v1 format
+        logger.info(f"Using Firecrawl API to scrape: {url}")
         
-        # Scrape the URL and get markdown content
-        logger.info(f"Scraping URL with firecrawl: {url}")
-        scrape_result = firecrawl_app.scrape_url(url, params={'formats': ['markdown']})
+        # Scrape the URL using Firecrawl - Updated API format
+        scraped_response = firecrawl_app.scrape_url(
+            url,
+            onlyMainContent=True,
+            formats=['markdown']
+        )
         
-        # Log the result structure
-        logger.info(f"Firecrawl result keys: {scrape_result.keys()}")
+        # Handle the ScrapeResponse object (not a dictionary)
+        if not scraped_response or not scraped_response.success:
+            logger.error(f"Failed to scrape URL: {url}. Success: {scraped_response.success if scraped_response else 'None'}")
+            if scraped_response and scraped_response.error:
+                logger.error(f"Firecrawl error: {scraped_response.error}")
+            raise ValueError("Failed to extract content using Firecrawl API.")
         
-        # Extract title and content
-        title = scrape_result.get('title', '')
-        markdown_content = scrape_result.get('markdown', '')
+        # Extract markdown content from the response object
+        markdown_content = scraped_response.markdown
+        if not markdown_content:
+            logger.error(f"No markdown content returned from Firecrawl API for URL: {url}")
+            raise ValueError("Failed to extract markdown content using Firecrawl API.")
+        
+        # Extract title from first line if it looks like a title (starts with #)
+        lines = markdown_content.split('\n')
+        title = ""
+        content = markdown_content
+        
+        # Look for the first heading as title
+        for line in lines:
+            if line.strip().startswith('# '):
+                title = line.strip()[2:].strip()
+                break
+        
+        # If no title found, try to get from metadata or use URL
+        if not title:
+            # Try to get title from scraped response metadata
+            if scraped_response.metadata and scraped_response.metadata.get('title'):
+                title = scraped_response.metadata['title']
+            elif content:
+                title = f"Article from {url}"
         
         logger.info(f"Extracted title: {title}")
-        logger.info(f"Markdown content length: {len(markdown_content)}")
+        logger.info(f"Markdown content length: {len(content)}")
         
         # For now, we'll leave top_image_url empty as per instruction
         top_image_url = ''
         
-        # Use markdown as the content for compatibility with existing code
-        content = markdown_content
-        
-        # If title is missing but we have content, use the URL as the title
-        if not title and content:
-            logger.info("Title is missing, using URL as title")
-            title = f"Article from {url}"
-        
         if not content:
-            logger.error(f"Failed to extract meaningful content: content={bool(content)}")
+            logger.error(f"Failed to extract meaningful content")
             raise ValueError("Failed to extract meaningful content from the URL")
         
         return FormattedContent(
             title=title, 
             content=content, 
             top_image_url=top_image_url,
-            markdown_content=markdown_content
+            markdown_content=content
         )
         
     except Exception as e:
-        logger.error(f"Unexpected error fetching article: {e}")
-        raise ValueError(f"An unexpected error occurred while fetching the article from {url}: {str(e)}")
+        logger.error(f"Firecrawl API error: {e}")
+        raise ValueError(f"Unable to fetch article content using Firecrawl API: {str(e)}")
 
 
 @app.route("/")
@@ -326,43 +343,73 @@ def query_article():
         return jsonify({"error": "No data provided"}), 400
         
     model = data.get("model")
-    api_key = data.get("apiKey")
     content = data.get("content")
     query = data.get("query")
+    title = data.get("title", "")  # Get article title for validation
     
-    # Validate inputs
-    if not model or model not in MODELS and model not in ["gpt-4-turbo-preview", "gpt-3.5-turbo", "gpt-4"]:
+    # Validate inputs - removed API key validation since we use server keys
+    if not model or model not in MODELS and model not in ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4o"]:
         return jsonify({"error": "Invalid or unsupported model"}), 400
-        
-    if api_key and not validate_api_key(api_key):
-        return jsonify({"error": "Invalid API key format"}), 400
         
     if not validate_content(content):
         return jsonify({"error": "Invalid or missing content"}), 400
         
     if not query or not isinstance(query, str) or len(query) > 1000:  # Reasonable query length limit
         return jsonify({"error": "Invalid or missing query"}), 400
-    if model in ["gpt-4-turbo-preview", "gpt-3.5-turbo", "gpt-4"]:
+    
+    # VALIDATION: Check if query is relevant to article content
+    try:
+        validation_result = query_validator.validate_query(query, content, title)
+        if not validation_result.is_valid:
+            logger.info(f"Query rejected: {validation_result.reason} (confidence: {validation_result.confidence:.2f})")
+            
+            # Return helpful error message with suggestions
+            error_response = {
+                "error": "Your question doesn't appear to be related to this article.",
+                "reason": validation_result.reason,
+                "suggestions": validation_result.suggestions or []
+            }
+            
+            # Add "ask anyway" option for edge cases
+            error_response["override_available"] = True
+            error_response["override_hint"] = "Add 'force:' at the beginning of your question to override this check."
+            
+            return jsonify(error_response), 422  # 422 Unprocessable Entity
+            
+    except Exception as e:
+        logger.error(f"Query validation error: {e}")
+        # If validation fails, log error but allow query to proceed
+        logger.info("Query validation failed, proceeding with query anyway")
+    
+    # Check for force override
+    force_override = query.lower().startswith("force:")
+    if force_override:
+        query = query[6:].strip()  # Remove "force:" prefix
+        logger.info("Query validation overridden by user")
+    
+    if model in ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4o"]:
         try:
-            # Create a new OpenAI client with the provided API key or use the default one
-            openai_client = OpenAI(api_key=api_key) if api_key else client
+            # Always use the server's OpenAI client (no user API keys)
             indexModel = IndexModel.VECTOR_STORE
             temperature = 0.2
 
-            prompt = f"""
-                You need to write your answer into the MarkDown format.
-                You can link and highlight part of the article using MarkDown link like so: \"\"\"[Source](#highlight=Exact%20Text%20from%20the%20content)\"\"\",
-                Do not use '-' for space use '%20' instead, and refer to the content using the exact words within the content.
-                Do not hesitate to link and highlight each part of the content that informs your answer.
-                This is the content: <content>{content}</content>
-                """
-
-            # Create RAG index
-            index = indexUtils.create_rag_index(prompt, model, indexModel)
+            # Create RAG index from the content
+            index = indexUtils.create_rag_index(content, model, indexModel)
             if index is None:
                 raise ValueError("Failed to create RAG index")
             
-            query_engine = index.as_query_engine()
+            # Create query engine with system prompt for markdown formatting
+            system_prompt = """
+            You need to write your answer in MarkDown format.
+            You can link and highlight parts of the article using MarkDown links like: [Source](#highlight=Exact%20Text%20from%20the%20content)
+            Do not use '-' for spaces, use '%20' instead, and refer to the content using exact words from the content.
+            Link and highlight each part of the content that informs your answer.
+            """
+            
+            query_engine = index.as_query_engine(
+                system_prompt=system_prompt
+            )
+            
             # Use RAG to get relevant content
             response = query_engine.query(query)
 
@@ -374,8 +421,12 @@ def query_article():
             logger.error(f"Unexpected error in query: {str(e)}")
             return jsonify({"error": str(e)}), 400
     else:
-        api_key = api_key if api_key else os.getenv("LLAMA_API_KEY")
-        llama = LlamaAPI(api_key)
+        # For non-OpenAI models, use server's Llama API key
+        llama_api_key = os.getenv("LLAMA_API_KEY")
+        if not llama_api_key:
+            return jsonify({"error": "Llama API key not configured on server"}), 500
+            
+        llama = LlamaAPI(llama_api_key)
         try:
             api_request_json = {
                 "model": MODELS[model],

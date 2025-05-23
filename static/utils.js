@@ -10,33 +10,6 @@ const handleKeyDown = (event, action) => {
     }
 }
 
-// Function to save the API key to localStorage
-document.getElementById('saveApiKeyButton').addEventListener('click', () => {
-    const apiKey = document.getElementById('apiKeyInput').value;
-    if (apiKey) {
-        localStorage.setItem('api_key', apiKey);
-        // Show a brief confirmation message
-        const saveButton = document.getElementById('saveApiKeyButton');
-        const originalText = saveButton.textContent;
-        saveButton.textContent = 'Saved!';
-        setTimeout(() => {
-            saveButton.textContent = originalText;
-        }, 2000);
-    }
-});
-
-// Function to retrieve the API key from localStorage
-function getApiKey() {
-    return localStorage.getItem('api_key') || null;
-}
-
-// Load saved API key on page load
-window.addEventListener('DOMContentLoaded', () => {
-    const savedApiKey = getApiKey();
-    if (savedApiKey) {
-        document.getElementById('apiKeyInput').value = savedApiKey;
-    }
-});
 
 // Function to open article modal
 function openArticleModal() {

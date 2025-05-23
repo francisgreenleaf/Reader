@@ -4,19 +4,20 @@ The Reader App is a web application that allows users to fetch articles from a g
 
 ## Features
 
-- 📰 Article Fetching: Extract content from any web URL
+- 📰 Article Fetching: Extract content from any web URL using Firecrawl
 - 📝 Automatic Summarization: Generate concise summaries using GPT models
 - 🔍 Interactive Querying: Ask questions about the article using various LLM models
 - 📄 PDF Generation: Download articles as beautifully formatted PDFs
 - 🎨 Multiple Themes: Support for light, dark, and sepia themes
 - 💡 Smart Highlighting: Highlight relevant parts of the article during Q&A
+- 🔐 Server-side API Keys: No need for users to provide their own API keys
 
 ## Available Models
 
 - OpenAI Models:
-  - GPT-4 Turbo Preview
+  - GPT-4o Mini (Default - Cost Effective)
   - GPT-3.5 Turbo
-  - GPT-4
+  - GPT-4o
 - Llama Models:
   - Llama 3.1 (70B)
   - Gemma 2 (27B)
@@ -31,7 +32,6 @@ Reader/
 ├── static/               # Static assets
 │   ├── chat.js          # Chat functionality
 │   ├── news.js          # News-related features
-│   ├── script.js        # Core JavaScript
 │   ├── styles.css       # Main styles
 │   ├── tailwind.css     # Tailwind styles
 │   ├── themes.js        # Theme switching
@@ -53,7 +53,10 @@ Reader/
 
 - Python 3.11 or higher
 - pip (Python package manager)
-- OpenAI API key
+
+**Server-side API Keys Required:**
+- OpenAI API key (for GPT models and summarization)
+- Firecrawl API key (for web scraping)
 - (Optional) Llama API key for additional models
 
 ### Installation
@@ -77,8 +80,17 @@ Reader/
 
 4. Create a .env file with your API keys:
    ```sh
-   OPENAI_API_KEY=your_openai_key_here
-   LLAMA_API_KEY=your_llama_key_here  # Optional
+   # Server-side API keys - Required for the application to function
+   # Users do not need to provide their own API keys
+
+   # OpenAI API key for GPT models and article summarization
+   OPENAI_API_KEY='your_openai_api_key_here'
+
+   # Firecrawl API key for web scraping
+   FIRECRAWL_API_KEY='your_firecrawl_api_key_here'
+
+   # Optional: Llama API key for non-OpenAI models (Llama, Gemma, Mistral, Qwen)
+   LLAMA_API_KEY='your_llama_api_key_here'
    ```
 
 5. Run the application:
@@ -92,7 +104,8 @@ Reader/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| OPENAI_API_KEY | Yes | Your OpenAI API key |
+| OPENAI_API_KEY | Yes | Your OpenAI API key for GPT models and summarization |
+| FIRECRAWL_API_KEY | Yes | Your Firecrawl API key for web scraping |
 | LLAMA_API_KEY | No | Your Llama API key for additional models |
 | FLASK_ENV | No | Set to 'development' for debug mode |
 | PORT | No | Custom port (default: 8080) |
@@ -102,7 +115,7 @@ Reader/
 ### /fetch (POST)
 Fetches and processes an article from a URL.
 - Request body: `{ "url": "article_url" }`
-- Response: `{ "content": { "title", "content", "top_image_url" }, "summary" }`
+- Response: `{ "content": { "title", "content", "top_image_url", "markdown_content" }, "summary" }`
 
 ### /query (POST)
 Queries an article using natural language.
@@ -122,13 +135,19 @@ Generates a PDF version of the article.
    - Check if the website allows web scraping
    - Try using a different URL from the same source
    - Ensure you're not being rate-limited
+   - Verify your Firecrawl API key is valid
 
 2. **"OpenAI API Error"**
    - Verify your API key is correct
    - Check your API usage limits
    - Ensure your request isn't too long
 
-3. **PDF Generation Fails**
+3. **"Firecrawl API Error"**
+   - Verify your Firecrawl API key is valid
+   - Check your Firecrawl usage limits
+   - Ensure the URL is accessible
+
+4. **PDF Generation Fails**
    - Check if the article content is not empty
    - Verify the image URL is accessible
    - Ensure you have sufficient permissions

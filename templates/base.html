@@ -53,18 +53,10 @@
             <h3 class="text-lg font-bold">Settings</h3>
             <div class="py-4">
 
-                <!-- API Key Input -->
-                <label for="apiKeyInput" class="block text-sm font-medium mb-2">API Key (OpenAI or Llama):</label>
-                <div class="flex space-x-2 mb-4">
-                    <input type="password" id="apiKeyInput" class="input input-bordered flex-grow" placeholder="Enter API Key for selected model">
-                    <button id="saveApiKeyButton" class="btn">Save</button>
-                </div>
-                <p class="text-xs mb-4">The API key will be used based on the selected model. For OpenAI models (GPT-4o, GPT-3.5), enter an OpenAI API key. For other models, enter the appropriate API key.</p>
-
                 <!-- Model Selection -->
                 <label for="modelSelect" class="block text-sm font-medium mb-2">Select Model:</label>
                 <select id="modelSelect" class="select select-bordered w-full mb-4">
-                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                    <option value="gpt-4o-mini" selected>GPT-4o Mini (Recommended - Cost Effective)</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                     <option value="llama-3.1">Llama-3.1</option>
@@ -72,6 +64,7 @@
                     <option value="mistral-large">Mistral Large</option>
                     <option value="qwen-2">Qwen 2</option>
                 </select>
+                <p class="text-xs text-gray-600 mb-4">All models are provided by the service - no API keys required!</p>
 
                 <!-- Theme Selection -->
                 <label for="themeSelect" class="block text-sm font-medium mb-2">Select Theme:</label>
@@ -104,7 +97,6 @@
                     <option value="Ubuntu" style="font-family: Ubuntu;">Ubuntu</option>
 
                 </select>
-
 
             </div>
         </div>

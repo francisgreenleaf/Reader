@@ -140,15 +140,11 @@ const queryArticle = async () => {
     }
 
     try {
-        // Get the API key from localStorage using the getApiKey function
-        const apiKey = getApiKey();
-        
-        // Include the API key in the request if it exists
+        // API keys are now handled server-side
         const response = await axios.post('/query', { 
             content: content, 
             query: query, 
-            model: model,
-            apiKey: apiKey
+            model: model
         });
         writeToChat(true, response.data.result);
     } catch (error) {
