@@ -100,6 +100,18 @@ Reader/
 
 6. Open your browser and navigate to `http://localhost:8080`
 
+## Dependency Management
+
+The project has undergone a significant dependency reduction to streamline the application and reduce its footprint. The following changes were made:
+
+- **Removed `langchain`**: The project now exclusively uses `llama-index` for all RAG (Retrieval-Augmented Generation) functionalities, removing the redundancy of having two similar frameworks.
+- **Removed `pandas` and `newspaper3k`**: These heavy libraries were removed to reduce the overall size of the application.
+- **Replaced `scikit-learn`**: The `cosine_similarity` function from `scikit-learn` was replaced with a more lightweight implementation using `numpy`.
+- **Removed Redundant HTTP Libraries**: The project now standardizes on the `requests` library for HTTP requests, removing `httpx` and `aiohttp`.
+- **Removed Unused Utilities**: Various other unused utility libraries were removed to further clean up the dependencies.
+
+This has resulted in a much smaller and more manageable `requirements.txt` file.
+
 ## Environment Variables
 
 | Variable | Required | Description |

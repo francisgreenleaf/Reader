@@ -8,7 +8,6 @@ from typing import Tuple, Dict, List, Optional
 from dataclasses import dataclass
 import numpy as np
 from openai import OpenAI
-from sklearn.metrics.pairwise import cosine_similarity
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +134,7 @@ class QueryValidator:
         query_embedding = self._get_embedding(query)
         
         # Calculate similarity
-        similarity = cosine_similarity([query_embedding], [article_embedding])[0][0]
+        similarity = np.dot(query_embedding, article_embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(article_embedding))
         
         # Set threshold (0.55 is more permissive - allows related questions but blocks irrelevant ones)
         threshold = 0.55
