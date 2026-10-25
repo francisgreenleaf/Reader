@@ -179,6 +179,13 @@ One explicitly expected failure records an upstream fsspec limitation: its
 default simple-template mode still permits attribute traversal. Reader does not
 use `ReferenceFileSystem`; do not use that mode with untrusted reference specs.
 
+GitHub Actions runs these same checks with Python 3.12 on pull requests targeting
+`main` and pushes to `main`, skipping documentation-only and IDE-only changes.
+The workflow uses a single job, caches pip downloads, and needs no API keys or
+repository secrets. It does not run on a schedule or deploy the app. The known
+fsspec expected failure remains visible in the test output; any other failure
+fails the job.
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Commit your changes: `git commit -am 'Add feature'`
