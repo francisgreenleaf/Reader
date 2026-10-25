@@ -161,6 +161,24 @@ Generates a PDF version of the article.
 
 ## Contributing
 
+### Offline security and compatibility checks
+
+After installing `requirements.txt`, run these tests without API credentials:
+
+```sh
+python -m pip check
+python -m unittest tests.test_security_dependencies tests.test_security_application -v
+```
+
+These tests mock external services and cover image/PDF generation, dependency
+security boundaries, Firecrawl's request/response contract, and an offline RAG
+query. Do not use broad test discovery for these checks: the legacy Firecrawl
+diagnostic scripts make live requests and may print API credentials.
+
+One explicitly expected failure records an upstream fsspec limitation: its
+default simple-template mode still permits attribute traversal. Reader does not
+use `ReferenceFileSystem`; do not use that mode with untrusted reference specs.
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Commit your changes: `git commit -am 'Add feature'`
