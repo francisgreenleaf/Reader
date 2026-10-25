@@ -1,0 +1,50 @@
+name: Offline regression tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.idea/**'
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.idea/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression-tests:
+    name: Python 3.12 offline checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Check dependency compatibility
+        run: python -m pip check
+
+      - name: Run offline regressions
+        # Explicit modules only: legacy diagnostics make live API requests.
+        run: python -m unittest tests.test_security_dependencies tests.test_security_application -v
